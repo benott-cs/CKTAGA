@@ -21,13 +21,12 @@ import com.igormaznitsa.prologparser.operators.OperatorContainer;
 import com.igormaznitsa.prologparser.operators.OperatorType;
 import com.igormaznitsa.prologparser.terms.*;
 import com.igormaznitsa.prologparser.utils.StringUtils;
+import edu.uri.cs.util.FileReaderUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.nio.channels.Channels;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -64,8 +63,8 @@ public class IntegrationTest extends AbstractPrologParserTest {
 
     @Test
     public void readAlephTheory() throws Exception {
-
-        PrologStructure structure = (PrologStructure) parser.nextSentence("test(A,B,C,A,B,C,A,B,C,A,B,C,_,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,_,_).");
+        String alephTheory = FileReaderUtils.readFileAsString("/home/Ben/Aleph/Mutagenesis/42/generated_theory_1.pl");
+        PrologStructure structure = (PrologStructure) parser.nextSentence("atm(d1,d1_1,c,22,-0.117).");
 
         final Set<PrologVariable> varSet = new HashSet<PrologVariable>();
         for (int li = 0; li < structure.getArity(); li++) {
@@ -75,12 +74,6 @@ public class IntegrationTest extends AbstractPrologParserTest {
         }
 
         assertEquals(structure.getArity(), varSet.size());
-    }
-
-    public static String readFileAsString(String fileName)throws Exception
-    {
-        String data = new String(Files.readAllBytes(Paths.get(fileName)));
-        return data;
     }
 
     @Test
