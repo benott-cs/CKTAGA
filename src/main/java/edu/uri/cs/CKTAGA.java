@@ -2,6 +2,7 @@ package edu.uri.cs;
 
 import com.igormaznitsa.prologparser.terms.AbstractPrologTerm;
 import com.igormaznitsa.prologparser.terms.PrologAtom;
+import edu.uri.cs.hypothesis.HypothesisManager;
 import edu.uri.cs.parse.HypothesisParser;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.parse.PrologLanguageParser;
@@ -12,22 +13,8 @@ import edu.uri.cs.parse.PrologLanguageParser;
 public class CKTAGA {
 
     public static void main(String[] args) {
-        PrologLanguageParser backgroundParser = new PrologLanguageParser("/home/Ben/Aleph/Mutagenesis/42/mutagenesis_42.b.sans_modes");
-        HypothesisParser hypothesisParser = new HypothesisParser(
-                "/home/Ben/Aleph/Mutagenesis/42/generated_theory_1.pl",
-                backgroundParser.retrieveLanguage(false));
-        Language language = hypothesisParser.retrieveLanguage(true);
-        System.out.println("==============");
-        System.out.println("= Atoms");
-        System.out.println("==============");
-        for (PrologAtom a : language.getAvailableAtoms()) {
-            System.out.println(a);
-        }
-        System.out.println("==============");
-        System.out.println("= Terms");
-        System.out.println("==============");
-        for (AbstractPrologTerm t : language.getAvailableTerms()) {
-            System.out.println(t);
-        }
+        HypothesisManager hypothesisManager = new HypothesisManager("/home/Ben/Aleph/Mutagenesis/42/mutagenesis_42.b.sans_modes");
+        hypothesisManager.readHypothesisFromFile("/home/Ben/Aleph/Mutagenesis/42/generated_theory_1.pl");
+        hypothesisManager.dumpHypothesisLanguages();
     }
 }

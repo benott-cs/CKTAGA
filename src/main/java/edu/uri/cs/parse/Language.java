@@ -53,4 +53,19 @@ public class Language {
     public List<AbstractPrologTerm> getAvailableTerms() {
         return availableTerms;
     }
+
+    public void printAtomsAndTerms() {
+        System.out.println("==============");
+        System.out.println("= Atoms");
+        System.out.println("==============");
+        for (PrologAtom a : getAvailableAtoms()) {
+            System.out.println(a);
+        }
+        System.out.println("==============");
+        System.out.println("= Terms");
+        System.out.println("==============");
+        for (AbstractPrologTerm t : getAvailableTerms()) {
+            System.out.println(t);
+        }
+    }
 }
