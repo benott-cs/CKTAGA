@@ -59,6 +59,7 @@ public class LanguageParser {
         }
         switch (term.getType()) {
             case VAR:
+            case ALEPH_STRING:
                 language.addTerm(term);
                 break;
             case ATOM:
@@ -79,10 +80,10 @@ public class LanguageParser {
                 }
                 break;
             case OPERATOR:
-                System.out.print(term + " is an OPERATOR and is not supported");
+                System.out.println(term + " is an OPERATOR and is not supported");
                 break;
             case OPERATORS:
-                System.out.print(term + " is an OPERATORS and is not supported");
+                System.out.println(term + " is an OPERATORS and is not supported");
                 break;
             default:
                 break;

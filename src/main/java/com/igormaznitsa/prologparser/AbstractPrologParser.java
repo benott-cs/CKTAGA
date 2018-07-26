@@ -22,10 +22,7 @@ import com.igormaznitsa.prologparser.exceptions.PrologParserException;
 import com.igormaznitsa.prologparser.operators.Operator;
 import com.igormaznitsa.prologparser.operators.OperatorContainer;
 import com.igormaznitsa.prologparser.operators.OperatorType;
-import com.igormaznitsa.prologparser.terms.AbstractPrologTerm;
-import com.igormaznitsa.prologparser.terms.PrologList;
-import com.igormaznitsa.prologparser.terms.PrologStructure;
-import com.igormaznitsa.prologparser.terms.PrologTermType;
+import com.igormaznitsa.prologparser.terms.*;
 import com.igormaznitsa.prologparser.utils.Assert;
 import com.igormaznitsa.prologparser.utils.FastStringBuilder;
 import com.igormaznitsa.prologparser.utils.ThreadNonSafeArrayListCache;
@@ -670,6 +667,11 @@ public abstract class AbstractPrologParser implements SoftCacheItemFactory<Parse
                         final int nextTokenLineNumber = nextToken.getLineNumber();
                         final int nextTokenStrPosition = nextToken.getStringPosition();
 
+                        // was read as a string but should be an atom since it is followed by a '('
+                        if (readAtom.getType() == PrologTermType.ALEPH_STRING) {
+                            readAtom = new PrologAtom(readAtom);
+                        }
+
                         // it is a structure
                         if (readAtom.getType() == PrologTermType.ATOM) {
                             nextToken.dispose();
@@ -690,6 +692,7 @@ public abstract class AbstractPrologParser implements SoftCacheItemFactory<Parse
 
                         // check read atom to be zero-struct
                         if (readAtomContainer.getResult().getType() == PrologTermType.ATOM) {
+                            String atomText = readAtom.getText();
                             if (readAtomContainer.getTokenizerState() == TokenizerState.ATOM
                                     && readAtom.getText().equals("!")) {
                                 readAtom = new PrologStructure("!", readAtomContainer.getStringPosition(),
@@ -697,6 +700,13 @@ public abstract class AbstractPrologParser implements SoftCacheItemFactory<Parse
                             } else if (context != null && context.hasZeroArityPredicate(this, readAtom.getText())) {
                                 readAtom = new PrologStructure(readAtom, readAtomContainer.getStringPosition(),
                                         readAtomContainer.getLineNumber());
+                            }
+                            // for some reason 2.0E is supposed to be an atom, not a float
+                            else if (!atomText.isEmpty() && atomText.substring(atomText.length() - 1).equals("e") &&
+                                    isNumeric(atomText.substring(0, atomText.length() - 1))) {
+                            } else if (readAtom.getText() == readAtom.getText().toLowerCase() &&
+                                    !AbstractPrologNumericTerm.class.isInstance(readAtom)) {
+                                readAtom = new AlephStringConstant(readAtom);
                             }
                         }
                     }
@@ -779,6 +789,19 @@ public abstract class AbstractPrologParser implements SoftCacheItemFactory<Parse
         } else {
             return currentTreeItem.findRoot().convertTreeItemIntoTerm();
         }
+    }
+
+    public boolean isNumeric(String str)
+    {
+        try
+        {
+            double d = Double.parseDouble(str);
+        }
+        catch(NumberFormatException nfe)
+        {
+            return false;
+        }
+        return true;
     }
 
     /**

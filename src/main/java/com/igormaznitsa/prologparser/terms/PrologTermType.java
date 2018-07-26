@@ -33,6 +33,12 @@ public enum PrologTermType {
      */
     ATOM,
     /**
+     * The constant describes an aleph string constant
+     *
+     * @see AlephStringConstant
+     */
+    ALEPH_STRING,
+    /**
      * The constant describes a prolog structure
      *
      * @see PrologStructure

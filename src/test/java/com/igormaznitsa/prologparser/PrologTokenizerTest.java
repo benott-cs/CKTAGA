@@ -151,7 +151,7 @@ public class PrologTokenizerTest extends AbstractPrologParserTest {
 
         result = tokenizer.nextToken(reader, mockPrologParser);
         assertEquals(TokenizerState.STRING, result.getTokenizerState());
-        assertEquals(PrologTermType.ATOM, result.getResult().getType());
+        assertEquals(PrologTermType.ALEPH_STRING, result.getResult().getType());
         assertEquals("string", result.getResult().getText());
 
         result = tokenizer.nextToken(reader, mockPrologParser);

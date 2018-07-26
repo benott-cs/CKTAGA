@@ -51,7 +51,7 @@ public class IntegrationTest extends AbstractPrologParserTest {
     public void testParseStringWithSpecialChars() throws Exception {
         AbstractPrologTerm term = parser.nextSentence("'\u0008Hello\\\nWorld\u0021\\r'.'\\xFFAnother String\u0007'.");
 
-        assertEquals(PrologTermType.ATOM, term.getType());
+        assertEquals(PrologTermType.ALEPH_STRING, term.getType());
         assertEquals("\\bHello\\nWorld!\\r",
                 StringUtils.escapeString(term.getText()));
 
@@ -61,20 +61,20 @@ public class IntegrationTest extends AbstractPrologParserTest {
 
     }
 
-    @Test
-    public void readAlephTheory() throws Exception {
-        String alephTheory = FileReaderUtils.readFileAsString("/home/Ben/Aleph/Mutagenesis/42/generated_theory_1.pl");
-        PrologStructure structure = (PrologStructure) parser.nextSentence("atm(d1,d1_1,c,22,-0.117).");
-
-        final Set<PrologVariable> varSet = new HashSet<PrologVariable>();
-        for (int li = 0; li < structure.getArity(); li++) {
-            final PrologVariable currentVar = (PrologVariable) structure.getElement(li);
-            assertFalse(varSet.contains(currentVar));
-            varSet.add(currentVar);
-        }
-
-        assertEquals(structure.getArity(), varSet.size());
-    }
+//    @Test
+//    public void readAlephTheory() throws Exception {
+//        String alephTheory = FileReaderUtils.readFileAsString("/home/Ben/Aleph/Mutagenesis/42/generated_theory_1.pl");
+//        PrologStructure structure = (PrologStructure) parser.nextSentence("atm(d1,d1_1,c,22,-0.117).");
+//
+//        final Set<PrologVariable> varSet = new HashSet<PrologVariable>();
+//        for (int li = 0; li < structure.getArity(); li++) {
+//            final PrologVariable currentVar = (PrologVariable) structure.getElement(li);
+//            assertFalse(varSet.contains(currentVar));
+//            varSet.add(currentVar);
+//        }
+//
+//        assertEquals(structure.getArity(), varSet.size());
+//    }
 
     @Test
     public void testVariableMustBeNotEqualAtSentenceBounds() throws Exception {
@@ -117,11 +117,11 @@ public class IntegrationTest extends AbstractPrologParserTest {
     public void testEndOfStream() throws Exception {
         AbstractPrologTerm term = parser.nextSentence("hello.world.");
 
-        assertEquals(PrologTermType.ATOM, term.getType());
+        assertEquals(PrologTermType.ALEPH_STRING, term.getType());
         assertEquals("hello", term.getText());
 
         term = parser.nextSentence();
-        assertEquals(PrologTermType.ATOM, term.getType());
+        assertEquals(PrologTermType.ALEPH_STRING, term.getType());
         assertEquals("world", term.getText());
 
         term = parser.nextSentence();
@@ -152,25 +152,30 @@ public class IntegrationTest extends AbstractPrologParserTest {
         checkWrongSentenceReadingWithPPE(" 1,2,3].", 7);
     }
 
-    private void checkParseAtomWithoutPPE(final String atomToBeChecked, final String expectedAtomText) throws Exception {
+    private void checkParseAtomWithoutPPE(final String atomToBeChecked, final String expectedAtomText,
+                                          PrologTermType expectedTermType) throws Exception {
         AbstractPrologTerm atom = parser.nextSentence(atomToBeChecked + '.');
-        assertEquals(PrologTermType.ATOM, atom.getType());
-        assertEquals(PrologAtom.class, atom.getClass());
+        assertEquals(expectedTermType, atom.getType());
+        if (expectedTermType == PrologTermType.ALEPH_STRING) {
+            assertEquals(AlephStringConstant.class, atom.getClass());
+        } else {
+            assertEquals(PrologAtom.class, atom.getClass());
+        }
         assertEquals(expectedAtomText, atom.getText());
     }
 
     @Test
     public void testParseAtom() throws Exception {
-        checkParseAtomWithoutPPE("a", "a");
-        checkParseAtomWithoutPPE("test012", "test012");
-        checkParseAtomWithoutPPE("x______y", "x______y");
-        checkParseAtomWithoutPPE("alpha_beta_procedure", "alpha_beta_procedure");
+        checkParseAtomWithoutPPE("a", "a", PrologTermType.ALEPH_STRING);
+        checkParseAtomWithoutPPE("test012", "test012", PrologTermType.ALEPH_STRING);
+        checkParseAtomWithoutPPE("x______y", "x______y", PrologTermType.ALEPH_STRING);
+        checkParseAtomWithoutPPE("alpha_beta_procedure", "alpha_beta_procedure", PrologTermType.ALEPH_STRING);
         // test of non-latin chars, "hello" in russian
-        checkParseAtomWithoutPPE("привет", "привет");
-        checkParseAtomWithoutPPE("miss_Jones", "miss_Jones");
-        checkParseAtomWithoutPPE("\'Jones\'", "Jones");
-        checkParseAtomWithoutPPE("\'\'", "");
-        checkParseAtomWithoutPPE("x_", "x_");
+        checkParseAtomWithoutPPE("привет", "привет", PrologTermType.ALEPH_STRING);
+        checkParseAtomWithoutPPE("miss_Jones", "miss_Jones", PrologTermType.ATOM);
+        checkParseAtomWithoutPPE("\'Jones\'", "Jones", PrologTermType.ALEPH_STRING);
+        checkParseAtomWithoutPPE("\'\'", "", PrologTermType.ALEPH_STRING);
+        checkParseAtomWithoutPPE("x_", "x_", PrologTermType.ALEPH_STRING);
     }
 
     private void checkIntegerWithoutPPE(final String atomToBeChecked, final long expectedNumber) throws Exception {
@@ -193,8 +198,8 @@ public class IntegrationTest extends AbstractPrologParserTest {
         checkIntegerWithoutPPE(Long.toString(Long.MIN_VALUE), Long.MIN_VALUE);
 
         final AbstractPrologTerm val = parser.nextSentence("'298723987'.");
-        assertEquals(PrologTermType.ATOM, val.getType());
-        assertEquals(PrologAtom.class, val.getClass());
+        assertEquals(PrologTermType.ALEPH_STRING, val.getType());
+        assertEquals(AlephStringConstant.class, val.getClass());
         assertEquals("298723987", val.getText());
     }
 
@@ -274,7 +279,7 @@ public class IntegrationTest extends AbstractPrologParserTest {
         assertEquals(3, struct.getArity());
         assertEquals(PrologTermType.VAR, struct.getElement(0).getType());
         assertEquals("Day", struct.getElement(0).getText());
-        assertEquals(PrologTermType.ATOM, struct.getElement(1).getType());
+        assertEquals(PrologTermType.ALEPH_STRING, struct.getElement(1).getType());
         assertEquals("may", struct.getElement(1).getText());
         assertEquals(PrologTermType.ATOM, struct.getElement(2).getType());
         assertEquals(2001L,
@@ -619,9 +624,9 @@ public class IntegrationTest extends AbstractPrologParserTest {
     public void testSingleOperatorAsAtom() throws Exception {
         final PrologStructure structure = (PrologStructure) parser.nextSentence("not/stream.");
         assertEquals("/", structure.getFunctor().getText());
-        assertEquals("It must be an atom", PrologTermType.ATOM, structure.getElement(0).getType());
+        assertEquals("It must be an atom", PrologTermType.ALEPH_STRING, structure.getElement(0).getType());
         assertEquals("not", structure.getElement(0).getText());
-        assertEquals(PrologTermType.ATOM, structure.getElement(1).getType());
+        assertEquals(PrologTermType.ALEPH_STRING, structure.getElement(1).getType());
         assertEquals("stream", structure.getElement(1).getText());
     }
 

@@ -627,6 +627,13 @@ final class PrologTokenizer extends CharacterProcessor implements SoftCacheItemF
                     result = null;
                 }
                 break;
+            case STRING:
+                try {
+                    result = new AlephStringConstant(string);
+                } catch (NumberFormatException ex) {
+                    result = null;
+                }
+                break;
             default:
                 result = null;
         }
