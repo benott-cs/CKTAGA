@@ -5,9 +5,9 @@ package edu.uri.cs.parse;
  */
 public class HypothesisParser extends PrologLanguageParser {
 
-    public HypothesisParser(String prologInformationFile, PrologLanguageParser backgroundParser) {
+    public HypothesisParser(String prologInformationFile, Language backgroundLanguage) {
         super(prologInformationFile);
-        this.language = backgroundParser.retrieveLanguage();
+        this.language = backgroundLanguage;
     }
 
 }

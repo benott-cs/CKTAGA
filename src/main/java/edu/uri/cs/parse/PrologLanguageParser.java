@@ -20,8 +20,8 @@ public class PrologLanguageParser {
         language = languageParser.retrieveLanguageForPrologFile(prologInformationFile, language);
     }
 
-    public Language retrieveLanguage() {
-        if (Objects.isNull(language)) {
+    public Language retrieveLanguage(boolean forceParse) {
+        if (Objects.isNull(language) || forceParse) {
             parseLanguage();
         }
         return language;

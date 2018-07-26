@@ -11,12 +11,12 @@ import edu.uri.cs.parse.PrologLanguageParser;
  */
 public class CKTAGA {
 
-
-
     public static void main(String[] args) {
         PrologLanguageParser backgroundParser = new PrologLanguageParser("/home/Ben/Aleph/Mutagenesis/42/mutagenesis_42.b.sans_modes");
-        HypothesisParser hypothesisParser = new HypothesisParser("/home/Ben/Aleph/Mutagenesis/42/generated_theory_1.pl", backgroundParser);
-        Language language = hypothesisParser.retrieveLanguage();
+        HypothesisParser hypothesisParser = new HypothesisParser(
+                "/home/Ben/Aleph/Mutagenesis/42/generated_theory_1.pl",
+                backgroundParser.retrieveLanguage(false));
+        Language language = hypothesisParser.retrieveLanguage(true);
         System.out.println("==============");
         System.out.println("= Atoms");
         System.out.println("==============");
