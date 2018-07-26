@@ -145,4 +145,22 @@ public final class PrologFloatNumber extends AbstractPrologNumericTerm {
         final String result = value.toEngineeringString();
         return result.indexOf('.') < 0 ? result + ".0" : result;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        PrologFloatNumber that = (PrologFloatNumber) o;
+
+        return value != null ? value.equals(that.value) : that.value == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        return result;
+    }
 }

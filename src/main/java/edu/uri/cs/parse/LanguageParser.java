@@ -44,7 +44,7 @@ public class LanguageParser {
         return language;
     }
 
-    private void retrieveLanguageFromString(String theory, Language language) throws IOException, PrologParserException {
+    protected void retrieveLanguageFromString(String theory, Language language) throws IOException, PrologParserException {
         AbstractPrologTerm term = parser.nextSentence(theory);
         // structure will be null when the end of the theory has been reached
         while (term != null) {
@@ -53,10 +53,7 @@ public class LanguageParser {
         }
     }
 
-    private void processPrologStructure(AbstractPrologTerm term, Language language) {
-        if (term.getText().equals("atm")) {
-            int j = 0;
-        }
+    protected void processPrologStructure(AbstractPrologTerm term, Language language) {
         switch (term.getType()) {
             case VAR:
             case ALEPH_STRING:

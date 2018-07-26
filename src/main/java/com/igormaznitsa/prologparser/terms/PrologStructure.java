@@ -402,4 +402,23 @@ public class PrologStructure extends AbstractPrologTerm {
         }
         return builder.toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PrologStructure structure = (PrologStructure) o;
+
+        if (functor != null ? !functor.equals(structure.functor) : structure.functor != null) return false;
+        // Probably incorrect - comparing Object[] arrays with Arrays.equals
+        return Arrays.equals(elements, structure.elements);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = functor != null ? functor.hashCode() : 0;
+        result = 31 * result + Arrays.hashCode(elements);
+        return result;
+    }
 }

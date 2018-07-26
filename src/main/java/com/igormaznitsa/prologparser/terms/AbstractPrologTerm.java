@@ -172,4 +172,22 @@ public abstract class AbstractPrologTerm extends CharacterProcessor implements S
      * @return the term type
      */
     public abstract PrologTermType getType();
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AbstractPrologTerm that = (AbstractPrologTerm) o;
+
+        if (text != null ? !text.equals(that.text) : that.text != null) return false;
+        return linkedObject != null ? linkedObject.equals(that.linkedObject) : that.linkedObject == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = text != null ? text.hashCode() : 0;
+        result = 31 * result + (linkedObject != null ? linkedObject.hashCode() : 0);
+        return result;
+    }
 }

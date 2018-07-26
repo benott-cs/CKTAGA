@@ -105,4 +105,22 @@ public final class PrologVariable extends AbstractPrologTerm {
     public PrologTermType getType() {
         return PrologTermType.VAR;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        PrologVariable that = (PrologVariable) o;
+
+        return is_anonymous == that.is_anonymous;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (is_anonymous ? 1 : 0);
+        return result;
+    }
 }

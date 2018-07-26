@@ -389,4 +389,28 @@ public final class OperatorContainer extends AbstractPrologTerm {
 
         return result.append(']').toString();
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        OperatorContainer that = (OperatorContainer) o;
+
+        if (numberAtContainer != that.numberAtContainer) return false;
+        if (opFZ != null ? !opFZ.equals(that.opFZ) : that.opFZ != null) return false;
+        if (opZF != null ? !opZF.equals(that.opZF) : that.opZF != null) return false;
+        return opZFZ != null ? opZFZ.equals(that.opZFZ) : that.opZFZ == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (opFZ != null ? opFZ.hashCode() : 0);
+        result = 31 * result + (opZF != null ? opZF.hashCode() : 0);
+        result = 31 * result + (opZFZ != null ? opZFZ.hashCode() : 0);
+        result = 31 * result + numberAtContainer;
+        return result;
+    }
 }
