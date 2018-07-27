@@ -2,7 +2,10 @@ package edu.uri.cs.parse;
 
 import com.igormaznitsa.prologparser.PrologParser;
 import com.igormaznitsa.prologparser.exceptions.PrologParserException;
-import com.igormaznitsa.prologparser.terms.*;
+import com.igormaznitsa.prologparser.terms.AbstractPrologNumericTerm;
+import com.igormaznitsa.prologparser.terms.AbstractPrologTerm;
+import com.igormaznitsa.prologparser.terms.PrologAtom;
+import com.igormaznitsa.prologparser.terms.PrologStructure;
 import edu.uri.cs.util.FileReaderUtils;
 
 import java.io.IOException;

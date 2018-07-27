@@ -1,6 +1,5 @@
 package edu.uri.cs.hypothesis;
 
-import edu.uri.cs.parse.HypothesisParser;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.parse.PrologLanguageParser;
 
@@ -21,13 +20,13 @@ public class HypothesisManager {
         this.backgroundFile = backgroundFile;
     }
 
-    public void initialize() {
+    public synchronized void initialize() {
         backgroundParser = new PrologLanguageParser(backgroundFile);
         backgroundLanguage = backgroundParser.retrieveLanguage(false);
         initialized = true;
     }
 
-    public void readHypothesisFromFile(String hypothesisFile) {
+    public synchronized void readHypothesisFromFile(String hypothesisFile) {
         if (!initialized) {
             initialize();
         }
@@ -40,7 +39,7 @@ public class HypothesisManager {
         }
     }
 
-    public void dumpHypothesisLanguages() {
+    public synchronized void dumpHypothesisLanguages() {
         for (Hypothesis h : hypothesisMap.values()) {
             h.printHypothesisLanguage();
         }
