@@ -5,6 +5,6 @@ import com.igormaznitsa.prologparser.terms.PrologStructure;
 /**
  * Created by Ben on 7/26/18.
  */
-public class AndTree extends GenericTree<PrologStructure> {
+public class AndTree extends ShuffledEnumeratedTree<PrologStructure> {
 
 }

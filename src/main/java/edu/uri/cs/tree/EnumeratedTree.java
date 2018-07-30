@@ -86,4 +86,26 @@ public class EnumeratedTree<T> {
     public void setNumericAssignment(int numericAssignment) {
         this.numericAssignment = numericAssignment;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        EnumeratedTree<?> that = (EnumeratedTree<?>) o;
+
+        if (numericAssignment != that.numericAssignment) return false;
+        if (treeSize != that.treeSize) return false;
+        if (children != null ? !children.equals(that.children) : that.children != null) return false;
+        return leafChildren != null ? leafChildren.equals(that.leafChildren) : that.leafChildren == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = numericAssignment;
+        result = 31 * result + treeSize;
+        result = 31 * result + (children != null ? children.hashCode() : 0);
+        result = 31 * result + (leafChildren != null ? leafChildren.hashCode() : 0);
+        return result;
+    }
 }
