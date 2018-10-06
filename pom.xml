@@ -75,7 +75,12 @@
             <artifactId>lombok-maven-plugin</artifactId>
             <version>1.18.0.0</version>
         </dependency>
-
+        <dependency>
+            <groupId>uk.com.robust-it</groupId>
+            <artifactId>cloning</artifactId>
+            <version>1.9.10</version>
+            <type>bundle</type>
+        </dependency>
     </dependencies>
 
     <profiles>
