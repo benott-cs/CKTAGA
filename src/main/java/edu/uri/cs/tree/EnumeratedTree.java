@@ -1,11 +1,14 @@
 package edu.uri.cs.tree;
 
+import lombok.ToString;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Created by Ben on 7/26/18.
  */
+@ToString
 public class EnumeratedTree<T> {
 
     private int numericAssignment;
@@ -19,18 +22,23 @@ public class EnumeratedTree<T> {
 
     public EnumeratedTree(List<T> objects) {
         treeSize = objects.size();
-        // create a balanced tree
+        // create a random tree
         if (objects.size() > 3) {
-            int partitionSize = Math.round(objects.size() / 2);
-            List<T> firstHalf = objects.stream().limit(partitionSize).collect(Collectors.toList());
-            objects.removeAll(firstHalf);
-            children.add(new EnumeratedTree<T>(firstHalf));
+            int partitionSize = (int) Math.ceil(objects.size() * Math.random());
+            if (partitionSize == 0) {
+                partitionSize++;
+            }
+            List<T> firstPortion = objects.stream().limit(partitionSize).collect(Collectors.toList());
+            objects.removeAll(firstPortion);
+            children.add(new EnumeratedTree<T>(firstPortion));
             children.add(new EnumeratedTree<T>(objects));
-        } else if (objects.size() == 3) {
+        }
+        else if (objects.size() == 3) {
             T leafNode = objects.remove(0);
             leafChildren.put(leafNode, 0);
             children.add(new EnumeratedTree<T>(objects));
-        } else {
+        }
+        else {
             for (T input : objects) {
                 leafChildren.put(input, 0);
             }

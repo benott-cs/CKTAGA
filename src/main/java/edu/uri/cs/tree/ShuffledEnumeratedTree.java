@@ -1,5 +1,7 @@
 package edu.uri.cs.tree;
 
+import lombok.ToString;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -7,6 +9,7 @@ import java.util.List;
 /**
  * Created by Ben on 7/26/18.
  */
+@ToString
 public class ShuffledEnumeratedTree<T> {
 
     private List<T> childExpressions = new ArrayList<>();
