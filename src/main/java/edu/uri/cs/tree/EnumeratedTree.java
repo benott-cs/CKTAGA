@@ -28,15 +28,16 @@ public class EnumeratedTree<T> {
             if (partitionSize == 0) {
                 partitionSize++;
             }
-            List<T> firstPortion = objects.stream().limit(partitionSize).collect(Collectors.toList());
-            objects.removeAll(firstPortion);
+//            List<T> firstPortion = objects.stream().limit(partitionSize).collect(Collectors.toList());
+            List<T> firstPortion = objects.subList(0,partitionSize - 1);
+            List<T> secondPortion = objects.subList(partitionSize, objects.size());
             children.add(new EnumeratedTree<T>(firstPortion));
-            children.add(new EnumeratedTree<T>(objects));
+            children.add(new EnumeratedTree<T>(secondPortion));
         }
         else if (objects.size() == 3) {
-            T leafNode = objects.remove(0);
-            leafChildren.put(leafNode, 0);
-            children.add(new EnumeratedTree<T>(objects));
+//            T leafNode = objects.remove(0);
+            leafChildren.put(objects.get(0), 0);
+            children.add(new EnumeratedTree<T>(objects.subList(1,3)));
         }
         else {
             for (T input : objects) {
