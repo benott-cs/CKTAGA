@@ -77,10 +77,18 @@ public class PopulationManager {
         }
         for (int i = 1; i < numberOfGenerations; i++) {
             List<Hypothesis> nextGenHypotheses = new ArrayList<>();
+            hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
+                    .reversed()));
+            List<Double> partialSumsForSelection = new ArrayList<>();
+            double totalFitness = 0.0;
+            for (Hypothesis h : hypotheses) {
+                totalFitness += h.getScore();
+                partialSumsForSelection.add(totalFitness);
+            }
             addEliteMembersToNextGen(numberOfEliteHypotheses, nextGenHypotheses);
             while (nextGenHypotheses.size() < hypotheses.size()) {
                 List<Hypothesis> twoChildrenFromSelectionCrossoverAndMutation =
-                        getOneSetOfChildren();
+                        getOneSetOfChildren(totalFitness, partialSumsForSelection);
                 if (nextGenHypotheses.size() - hypotheses.size() >= 2) {
                     nextGenHypotheses.addAll(twoChildrenFromSelectionCrossoverAndMutation);
                 } else {
@@ -92,13 +100,37 @@ public class PopulationManager {
         }
     }
 
-    private List<Hypothesis> getOneSetOfChildren() {
+    private List<Hypothesis> getOneSetOfChildren(double totalFitness, List<Double> partialSumsForSelection) {
+        int index1 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
+        int index2 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);;
+        // make sure we have two different children
+        while (index2 == index1) {
+            index2 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
+        }
+        Hypothesis parent1 = hypotheses.get(index1);
+        Hypothesis parent2 = hypotheses.get(index2);
+        List<Hypothesis> children = performCrossover(parent1, parent2);
+        return children;
+    }
+    
+    private void mutateChildren(List<Hypothesis> children) {
+
+    }
+
+    private List<Hypothesis> performCrossover(Hypothesis parent1, Hypothesis parent2) {
         return null;
     }
 
+    private int getIndexOfLeastExceedingNumber(double number, List<Double> listToCheck) {
+        for (int i = 0; i < listToCheck.size(); i++) {
+            if (listToCheck.get(i) >= number) {
+                return i;
+            }
+        }
+        return listToCheck.size() - 1;
+    }
+
     private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
-        hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
-                .reversed()));
         for (int i = 0; i < numberOfEliteHypotheses; i++) {
             Cloner cloner=new Cloner();
             Hypothesis clone=cloner.deepClone(hypotheses.get(i));
