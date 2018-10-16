@@ -32,4 +32,8 @@ public class Logenpro {
         }
     }
 
+    public void evolve() {
+        populationManager.runGA();
+    }
+
 }
