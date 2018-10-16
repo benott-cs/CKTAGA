@@ -19,6 +19,7 @@ public class Hypothesis {
     private Language hypothesisLanguage;
     private HashMap<PrologStructure, OrTree> hypothesis;
     private double score = 0.0;
+    private boolean isElite = false;
 
     public Hypothesis(Language backgroundLanguage, String hypothesisFile) {
         this.backgroundLanguage = backgroundLanguage;
@@ -54,6 +55,14 @@ public class Hypothesis {
         return hypothesis.getOrDefault(key, null);
     }
 
+    public boolean isElite() {
+        return isElite;
+    }
+
+    public void setElite(boolean elite) {
+        isElite = elite;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -61,7 +70,8 @@ public class Hypothesis {
 
         Hypothesis that = (Hypothesis) o;
 
-        if (Double.compare(that.score, score) != 0) return false;
+        if (Double.compare(that.getScore(), getScore()) != 0) return false;
+        if (isElite != that.isElite) return false;
         if (backgroundLanguage != null ? !backgroundLanguage.equals(that.backgroundLanguage) : that.backgroundLanguage != null)
             return false;
         if (hypothesisFile != null ? !hypothesisFile.equals(that.hypothesisFile) : that.hypothesisFile != null)
@@ -79,8 +89,9 @@ public class Hypothesis {
         result = 31 * result + (hypothesisFile != null ? hypothesisFile.hashCode() : 0);
         result = 31 * result + (hypothesisLanguage != null ? hypothesisLanguage.hashCode() : 0);
         result = 31 * result + (hypothesis != null ? hypothesis.hashCode() : 0);
-        temp = Double.doubleToLongBits(score);
+        temp = Double.doubleToLongBits(getScore());
         result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (isElite ? 1 : 0);
         return result;
     }
 }

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.parse.PrologLanguageParser;
@@ -12,9 +13,7 @@ import edu.uri.cs.util.PropertyManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by Ben on 7/26/18.
@@ -32,6 +31,7 @@ public class PopulationManager {
     private HypothesisFactory hypothesisFactory;
     private HypothesisScorerIF hypothesisScorerIF;
     private int numberOfGenerations;
+    private double eliteSurvivalRate = 0.0;
     private String hypothesisOutputDirectory;
 
     public PopulationManager(String backgroundFile, PropertyManager propertyManager) {
@@ -52,6 +52,7 @@ public class PopulationManager {
         if (!directory.exists()) {
             directory.mkdirs();
         }
+        eliteSurvivalRate = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_ELITE_SURVIVAL_RATE);
         backgroundParser = new PrologLanguageParser(backgroundFile);
         backgroundLanguage = backgroundParser.retrieveLanguage(false);
         initialized = true;
@@ -70,8 +71,39 @@ public class PopulationManager {
 
     public void runGA() {
         writeHypothesesToFiles(0);
+        int numberOfEliteHypotheses = (int)Math.floor(hypotheses.size() * eliteSurvivalRate);
+        if (eliteSurvivalRate > 0 && numberOfEliteHypotheses <= 0) {
+            numberOfEliteHypotheses = 1;
+        }
         for (int i = 1; i < numberOfGenerations; i++) {
+            List<Hypothesis> nextGenHypotheses = new ArrayList<>();
+            addEliteMembersToNextGen(numberOfEliteHypotheses, nextGenHypotheses);
+            while (nextGenHypotheses.size() < hypotheses.size()) {
+                List<Hypothesis> twoChildrenFromSelectionCrossoverAndMutation =
+                        getOneSetOfChildren();
+                if (nextGenHypotheses.size() - hypotheses.size() >= 2) {
+                    nextGenHypotheses.addAll(twoChildrenFromSelectionCrossoverAndMutation);
+                } else {
+                    nextGenHypotheses.add(twoChildrenFromSelectionCrossoverAndMutation.get(0));
+                }
+            }
+            hypotheses = nextGenHypotheses;
+            writeHypothesesToFiles(i);
+        }
+    }
 
+    private List<Hypothesis> getOneSetOfChildren() {
+        return null;
+    }
+
+    private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
+        hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
+                .reversed()));
+        for (int i = 0; i < numberOfEliteHypotheses; i++) {
+            Cloner cloner=new Cloner();
+            Hypothesis clone=cloner.deepClone(hypotheses.get(i));
+            clone.setElite(true);
+            nextGen.add(clone);
         }
     }
 

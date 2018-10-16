@@ -15,6 +15,7 @@ public class PropertyManager {
     public static final String ALEPH_BACKGROUND_FILE = "aleph.background.file";
     public static final String CRKTAGA_NUMBER_OF_GENERATIONS = "crktaga.number.of.generations";
     public static final String CRKTAGA_HYPOTHESES_OUTPUT_DIRECTORY = "crktaga.generation.output";
+    public static final String CRKTAGA_ELITE_SURVIVAL_RATE = "crktaga.elite.survival.rate";
     public static final String ALEPH_HYPOTHESIS_OUTPUT_INITIAL_STRING = "aleph.hypothesis.output.initial.string";
     public static final String ALEPH_HYPOTHESIS_NEGATIVE_EXAMPLE_FILE = "aleph.hypothesis.negative.example.file";
     public static final String ALEPH_HYPOTHESIS_POSITIVE_EXAMPLE_FILE = "aleph.hypothesis.positive.example.file";
@@ -48,5 +49,9 @@ public class PropertyManager {
 
     public int getPropAsInt(String propertyName) {
         return Integer.valueOf(getProperty(propertyName));
+    }
+
+    public double getPropAsDouble(String propertyName) {
+        return Double.valueOf(getProperty(propertyName));
     }
 }
