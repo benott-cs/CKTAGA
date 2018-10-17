@@ -144,10 +144,6 @@ public class PopulationManager {
         Hypothesis child1 = cloner.deepClone(parent1);
         Hypothesis child2 = cloner.deepClone(parent2);
         switch (crossoverType) {
-            case SURVIVAL:
-                children.add(child1);
-                children.add(child2);
-                break;
             case RULE_SWAP:
                 PrologStructure randomRuleKey1 = child1.getRandomRule();
                 OrTree rule1 = child1.removeRule(randomRuleKey1);
@@ -158,10 +154,13 @@ public class PopulationManager {
                 break;
             case OR_SUBTREE_NODE_SWAP:
             case AND_SUBTREE_NODE_SWAP:
+            case SURVIVAL:
             default:
                 break;
         }
-        return null;
+        children.add(child1);
+        children.add(child2);
+        return children;
     }
 
     private int getIndexOfLeastExceedingNumber(double number, List<Double> listToCheck) {
