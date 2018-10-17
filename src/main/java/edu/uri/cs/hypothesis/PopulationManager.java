@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.parse.PrologLanguageParser;
+import edu.uri.cs.tree.OrTree;
 import edu.uri.cs.util.FileReaderUtils;
 import edu.uri.cs.util.PropertyManager;
 
@@ -32,7 +34,9 @@ public class PopulationManager {
     private HypothesisScorerIF hypothesisScorerIF;
     private int numberOfGenerations;
     private double eliteSurvivalRate = 0.0;
+    private List<Double> crossOverProbList = new ArrayList<>();
     private String hypothesisOutputDirectory;
+    private Cloner cloner=new Cloner();
 
     public PopulationManager(String backgroundFile, PropertyManager propertyManager) {
         this.backgroundFile = backgroundFile;
@@ -53,6 +57,22 @@ public class PopulationManager {
             directory.mkdirs();
         }
         eliteSurvivalRate = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_ELITE_SURVIVAL_RATE);
+
+        double tempRate = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_CROSSOVER_PARAM_P0);
+        double sum = tempRate;
+        crossOverProbList.add(sum);
+        tempRate = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_CROSSOVER_PARAM_P1);
+        sum += tempRate;
+        crossOverProbList.add(sum);
+        tempRate = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_CROSSOVER_PARAM_P2);
+        sum += tempRate;
+        crossOverProbList.add(sum);
+        tempRate = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_CROSSOVER_PARAM_P3);
+        sum += tempRate;
+        crossOverProbList.add(sum);
+
+        assert sum == 1.0 : "Invalid crossover parameters - must sum to one";
+
         backgroundParser = new PrologLanguageParser(backgroundFile);
         backgroundLanguage = backgroundParser.retrieveLanguage(false);
         initialized = true;
@@ -103,7 +123,7 @@ public class PopulationManager {
     private List<Hypothesis> getOneSetOfChildren(double totalFitness, List<Double> partialSumsForSelection) {
         int index1 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
         int index2 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);;
-        // make sure we have two different children
+        // make sure we have two different parents
         while (index2 == index1) {
             index2 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
         }
@@ -112,12 +132,35 @@ public class PopulationManager {
         List<Hypothesis> children = performCrossover(parent1, parent2);
         return children;
     }
-    
+
     private void mutateChildren(List<Hypothesis> children) {
 
     }
 
     private List<Hypothesis> performCrossover(Hypothesis parent1, Hypothesis parent2) {
+        List<Hypothesis> children = new ArrayList<>();
+        CrossoverType crossoverType =
+                CrossoverType.from(getIndexOfLeastExceedingNumber(Math.random(), crossOverProbList));
+        Hypothesis child1 = cloner.deepClone(parent1);
+        Hypothesis child2 = cloner.deepClone(parent2);
+        switch (crossoverType) {
+            case SURVIVAL:
+                children.add(child1);
+                children.add(child2);
+                break;
+            case RULE_SWAP:
+                PrologStructure randomRuleKey1 = child1.getRandomRule();
+                OrTree rule1 = child1.removeRule(randomRuleKey1);
+                PrologStructure randomRuleKey2 = child2.getRandomRule();
+                OrTree rule2 = child2.removeRule(randomRuleKey2);
+                child1.addRule(randomRuleKey2, rule2);
+                child2.addRule(randomRuleKey1, rule1);
+                break;
+            case OR_SUBTREE_NODE_SWAP:
+            case AND_SUBTREE_NODE_SWAP:
+            default:
+                break;
+        }
         return null;
     }
 
@@ -132,7 +175,6 @@ public class PopulationManager {
 
     private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
         for (int i = 0; i < numberOfEliteHypotheses; i++) {
-            Cloner cloner=new Cloner();
             Hypothesis clone=cloner.deepClone(hypotheses.get(i));
             clone.setElite(true);
             nextGen.add(clone);

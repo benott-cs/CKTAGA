@@ -7,6 +7,7 @@ import edu.uri.cs.tree.OrTree;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 /**
@@ -20,6 +21,7 @@ public class Hypothesis {
     private HashMap<PrologStructure, OrTree> hypothesis;
     private double score = 0.0;
     private boolean isElite = false;
+    private Random random = new Random();
 
     public Hypothesis(Language backgroundLanguage, String hypothesisFile) {
         this.backgroundLanguage = backgroundLanguage;
@@ -45,6 +47,19 @@ public class Hypothesis {
 
     public void printHypothesisLanguage() {
         hypothesisLanguage.printAtomsAndTerms();
+    }
+
+    public PrologStructure getRandomRule() {
+        int index = random.nextInt(hypothesis.keySet().size());
+        return getMValues().get(index);
+    }
+
+    public OrTree removeRule(PrologStructure prologStructure) {
+        return hypothesis.remove(prologStructure);
+    }
+
+    public void addRule(PrologStructure prologStructure, OrTree rule) {
+        hypothesis.put(prologStructure, rule);
     }
 
     public List<PrologStructure> getMValues() {
