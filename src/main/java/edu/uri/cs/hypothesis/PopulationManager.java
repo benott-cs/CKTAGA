@@ -145,6 +145,8 @@ public class PopulationManager {
         Hypothesis child2 = cloner.deepClone(parent2);
         switch (crossoverType) {
             case RULE_SWAP:
+                // Note that if there is only one rule (i.e. one unique
+                // head literal) in the hypothesis, this is the same as survival
                 PrologStructure randomRuleKey1 = child1.getRandomRule();
                 OrTree rule1 = child1.removeRule(randomRuleKey1);
                 PrologStructure randomRuleKey2 = child2.getRandomRule();
