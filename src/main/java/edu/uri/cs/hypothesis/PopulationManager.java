@@ -90,6 +90,7 @@ public class PopulationManager {
             String hypothesisFileName = hypothesisFactory.createHypothesis(positiveExamples, negativeExamples, i);
             readHypothesisFromFile(hypothesisFileName);
         }
+        scoreHypotheses();
     }
 
     public void runGA() {
@@ -119,6 +120,7 @@ public class PopulationManager {
                 }
             }
             hypotheses = nextGenHypotheses;
+            scoreHypotheses();
             writeHypothesesToFiles(i);
         }
     }
@@ -229,6 +231,12 @@ public class PopulationManager {
         }
     }
 
+    private void scoreHypotheses() {
+        for (Hypothesis h : hypotheses) {
+            hypothesisScorerIF.computeScore(h);
+        }
+    }
+
     public synchronized void readHypothesisFromFile(String hypothesisFile) {
         if (!initialized) {
             initialize();
@@ -237,7 +245,6 @@ public class PopulationManager {
             Hypothesis h = new Hypothesis(backgroundLanguage, hypothesisFile);
             h.initialize();
             hypotheses.add(h);
-            hypothesisScorerIF.computeScore(h);
         } else {
             System.out.println(hypothesisFile + " has already been processed");
         }
