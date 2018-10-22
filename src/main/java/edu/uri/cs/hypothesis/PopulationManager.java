@@ -135,19 +135,22 @@ public class PopulationManager {
         Hypothesis parent1 = hypotheses.get(index1);
         Hypothesis parent2 = hypotheses.get(index2);
         List<Hypothesis> children = performCrossover(parent1, parent2);
+        mutateChildren(children);
         return children;
     }
 
     private void mutateChildren(List<Hypothesis> children) {
-
+        for (Hypothesis h : children) {
+            // check if we should mutate and do so if applicable
+        }
     }
 
     private List<Hypothesis> performCrossover(Hypothesis parent1, Hypothesis parent2) {
         List<Hypothesis> children = new ArrayList<>();
         CrossoverType crossoverType =
                 CrossoverType.from(getIndexOfLeastExceedingNumber(Math.random(), crossOverProbList));
-        Hypothesis child1 = cloner.deepClone(parent1);
-        Hypothesis child2 = cloner.deepClone(parent2);
+        Hypothesis child1 = cloner.deepClone(parent1); child1.setElite(false);
+        Hypothesis child2 = cloner.deepClone(parent2); child1.setElite(false);
         switch (crossoverType) {
             case RULE_SWAP: {
                 // Note that if there is only one rule (i.e. one unique
@@ -205,7 +208,7 @@ public class PopulationManager {
 
     private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
         for (int i = 0; i < numberOfEliteHypotheses; i++) {
-            Hypothesis clone=cloner.deepClone(hypotheses.get(i));
+            Hypothesis clone = cloner.deepClone(hypotheses.get(i));
             clone.setElite(true);
             nextGen.add(clone);
         }
