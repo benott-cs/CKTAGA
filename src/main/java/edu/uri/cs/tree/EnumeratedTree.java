@@ -1,11 +1,13 @@
 package edu.uri.cs.tree;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.sun.org.apache.xpath.internal.operations.Or;
 import lombok.ToString;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 /**
@@ -47,8 +49,17 @@ public class EnumeratedTree<T extends Object> {
         childExpressions.add(item);
     }
 
+    public void addIterms(List<T> items) {
+        childExpressions.addAll(items);
+    }
+
     public void setChildExpressions(List<T> childExpressions) {
         this.childExpressions = childExpressions;
+    }
+
+    @JsonIgnore
+    public T getRandomChildExpression() {
+        return childExpressions.get(ThreadLocalRandom.current().nextInt(childExpressions.size()));
     }
 
     private void shuffle() {
@@ -57,6 +68,7 @@ public class EnumeratedTree<T extends Object> {
 
     public void generateTree() {
         initialize();
+        assignNumeralsToNodes();
     }
 
     private OrTree getOrTree(List<T> items) {
@@ -78,6 +90,8 @@ public class EnumeratedTree<T extends Object> {
     }
 
     public void initialize() {
+        leafChildren.clear();
+        children.clear();
         shuffle();
         treeSize = childExpressions.size();
         // create a random tree
@@ -127,30 +141,56 @@ public class EnumeratedTree<T extends Object> {
             }
             queue.addAll(node.children);
         }
+        treeSize = index;
     }
 
-    public Object getNthNode(int n) {
-        if (n >= treeSize) {
-            throw new IllegalArgumentException("N must be less than or equal to tree size: " + treeSize);
-        }
+    public List<T> getNthNode(int n) {
+        ArrayList<T> ret = new ArrayList<>();
         if (numericAssignment == n) {
-            return this;
+            return addChildrenToList(null);
         }
         if (leafChildren.values().contains(n)) {
             for (T leaf : leafChildren.keySet()) {
                 if (leafChildren.get(leaf) == n) {
-                    return leaf;
+                    ret.add(leaf);
+                    return ret;
                 }
             }
         }
-        Object ret = null;
+        List tmp = null;
         for (EnumeratedTree t : children) {
-            ret = getNthNode(n);
-            if (ret != null) {
+            tmp = t.getNthNode(n);
+            if (tmp != null && !tmp.isEmpty()) {
+                ret.addAll(tmp);
                 return ret;
             }
         }
         return ret;
+    }
+
+    private List<T> addChildrenToList(List<T> expressions) {
+        if (Objects.isNull(expressions)) {
+            expressions = new ArrayList<>();
+        }
+        for (T leaf : leafChildren.keySet()) {
+            expressions.add(leaf);
+        }
+        for (EnumeratedTree<T> child : children) {
+            expressions = child.addChildrenToList(expressions);
+        }
+        return expressions;
+    }
+
+    public void removeSomeChildExpressions(List<T> expressionsToRemove) {
+        for (T expression : expressionsToRemove) {
+            if (childExpressions.contains(expression)) {
+                childExpressions.remove(expression);
+            }
+        }
+    }
+
+    public int getTreeSize() {
+        return treeSize;
     }
 
     public int getNumericAssignment() {

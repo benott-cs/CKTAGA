@@ -9,6 +9,8 @@ import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.parse.PrologLanguageParser;
+import edu.uri.cs.tree.AndTree;
+import edu.uri.cs.tree.EnumeratedTree;
 import edu.uri.cs.tree.OrTree;
 import edu.uri.cs.util.FileReaderUtils;
 import edu.uri.cs.util.PropertyManager;
@@ -37,6 +39,7 @@ public class PopulationManager {
     private List<Double> crossOverProbList = new ArrayList<>();
     private String hypothesisOutputDirectory;
     private Cloner cloner=new Cloner();
+    private Random rand = new Random();
 
     public PopulationManager(String backgroundFile, PropertyManager propertyManager) {
         this.backgroundFile = backgroundFile;
@@ -144,7 +147,7 @@ public class PopulationManager {
         Hypothesis child1 = cloner.deepClone(parent1);
         Hypothesis child2 = cloner.deepClone(parent2);
         switch (crossoverType) {
-            case RULE_SWAP:
+            case RULE_SWAP: {
                 // Note that if there is only one rule (i.e. one unique
                 // head literal) in the hypothesis, this is the same as survival
                 PrologStructure randomRuleKey1 = child1.getRandomRule();
@@ -154,8 +157,32 @@ public class PopulationManager {
                 child1.addRule(randomRuleKey2, rule2);
                 child2.addRule(randomRuleKey1, rule1);
                 break;
-            case OR_SUBTREE_NODE_SWAP:
+            }
+            case OR_SUBTREE_NODE_SWAP: {
+                OrTree rule1 = child1.getValueForMthStructure(child1.getRandomRule());
+                OrTree rule2 = child2.getValueForMthStructure(child2.getRandomRule());
+                List<AndTree> rule1NthNode = rule1.getNthNode(rand.nextInt(rule1.getTreeSize()));
+                List<AndTree> rule2NthNode = rule2.getNthNode(rand.nextInt(rule2.getTreeSize()));
+                rule1.removeSomeChildExpressions(rule1NthNode);
+                rule1.addIterms(rule2NthNode);
+                rule1.generateTree();
+                rule2.removeSomeChildExpressions(rule2NthNode);
+                rule2.addIterms(rule1NthNode);
+                rule2.generateTree();
+                break;
+            }
             case AND_SUBTREE_NODE_SWAP:
+                AndTree andTree1 = child1.getValueForMthStructure(child1.getRandomRule()).getRandomChildExpression();
+                AndTree andTree2 = child2.getValueForMthStructure(child2.getRandomRule()).getRandomChildExpression();
+                List<PrologStructure> rule1NthNode = andTree1.getNthNode(rand.nextInt(andTree1.getTreeSize()));
+                List<PrologStructure> rule2NthNode = andTree2.getNthNode(rand.nextInt(andTree2.getTreeSize()));
+                andTree1.removeSomeChildExpressions(rule1NthNode);
+                andTree1.addIterms(rule2NthNode);
+                andTree1.generateTree();
+                andTree2.removeSomeChildExpressions(rule2NthNode);
+                andTree2.addIterms(rule1NthNode);
+                andTree2.generateTree();
+                break;
             case SURVIVAL:
             default:
                 break;
