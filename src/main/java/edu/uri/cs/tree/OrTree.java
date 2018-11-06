@@ -1,6 +1,5 @@
 package edu.uri.cs.tree;
 
-import com.igormaznitsa.prologparser.terms.PrologStructure;
 import lombok.ToString;
 
 import java.util.List;

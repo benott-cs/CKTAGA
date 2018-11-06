@@ -2,13 +2,11 @@ package edu.uri.cs.tree;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
-import com.sun.org.apache.xpath.internal.operations.Or;
 import lombok.ToString;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.stream.Collectors;
 
 /**
  * Created by Ben on 7/26/18.

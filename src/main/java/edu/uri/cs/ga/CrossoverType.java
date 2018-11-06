@@ -1,4 +1,4 @@
-package edu.uri.cs.hypothesis;
+package edu.uri.cs.ga;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -21,11 +21,11 @@ public enum CrossoverType {
     public int getValue() { return value; }
 
     // Mapping difficulty to difficulty id
-    private static final Map<Integer, CrossoverType> _map = new HashMap<Integer, CrossoverType>();
+    private static final Map<Integer, CrossoverType> _map = new HashMap<>();
     static
     {
-        for (CrossoverType difficulty : CrossoverType.values())
-            _map.put(difficulty.getValue(), difficulty);
+        for (CrossoverType crossoverType : CrossoverType.values())
+            _map.put(crossoverType.getValue(), crossoverType);
     }
 
     public static CrossoverType from(int value)

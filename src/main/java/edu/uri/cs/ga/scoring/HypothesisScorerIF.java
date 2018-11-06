@@ -1,4 +1,6 @@
-package edu.uri.cs.hypothesis;
+package edu.uri.cs.ga.scoring;
+
+import edu.uri.cs.hypothesis.Hypothesis;
 
 /**
  * Created by Ben on 7/30/18.

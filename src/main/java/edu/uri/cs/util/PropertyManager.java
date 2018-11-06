@@ -20,6 +20,19 @@ public class PropertyManager {
     public static final String CRKTAGA_CROSSOVER_PARAM_P1 = "crktaga.crossover.params.p1";
     public static final String CRKTAGA_CROSSOVER_PARAM_P2 = "crktaga.crossover.params.p2";
     public static final String CRKTAGA_CROSSOVER_PARAM_P3 = "crktaga.crossover.params.p3";
+
+    public static final String CRKTAGA_MUTATION_PROB = "crktaga.mutation.prob";
+    public static final String CRKTAGA_MUTATION_DOWNWARD_REFINEMENT_PROB = "crktaga.mutation.downward.refinement.prob";
+
+    public static final String CRKTAGA_MUTATION_DOWNWARD_CONSTANT = "crktaga.mutation.downward.params.constant.sub";
+    public static final String CRKTAGA_MUTATION_DOWNWARD_VARIABLE = "crktaga.mutation.downward.params.variable.sub";
+    public static final String CRKTAGA_MUTATION_DOWNWARD_LITERAL_ADD = "crktaga.mutation.downward.params.literal.addition";
+    public static final String CRKTAGA_MUTATION_DOWNWARD_LITERAL_ADD_POS = "crktaga.mutation.downward.params.literal.addition.positive";
+
+    public static final String CRKTAGA_MUTATION_UPWARD_CONSTANT = "crktaga.mutation.upward.params.constant.sub";
+    public static final String CRKTAGA_MUTATION_UPWARD_VARIABLE = "crktaga.mutation.downupwardward.params.variable.sub";
+    public static final String CRKTAGA_MUTATION_UPWARD_LITERAL_REMOVE = "crktaga.mutation.upward.params.literal.removal";
+
     public static final String ALEPH_HYPOTHESIS_OUTPUT_INITIAL_STRING = "aleph.hypothesis.output.initial.string";
     public static final String ALEPH_HYPOTHESIS_NEGATIVE_EXAMPLE_FILE = "aleph.hypothesis.negative.example.file";
     public static final String ALEPH_HYPOTHESIS_POSITIVE_EXAMPLE_FILE = "aleph.hypothesis.positive.example.file";

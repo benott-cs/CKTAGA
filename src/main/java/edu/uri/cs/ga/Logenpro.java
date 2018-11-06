@@ -1,6 +1,5 @@
 package edu.uri.cs.ga;
 
-import edu.uri.cs.hypothesis.PopulationManager;
 import edu.uri.cs.util.PropertyManager;
 
 /**

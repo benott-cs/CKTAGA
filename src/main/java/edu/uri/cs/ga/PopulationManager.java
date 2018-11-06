@@ -1,4 +1,4 @@
-package edu.uri.cs.hypothesis;
+package edu.uri.cs.ga;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
@@ -7,17 +7,22 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
+import edu.uri.cs.ga.scoring.HypothesisScorerIF;
+import edu.uri.cs.ga.scoring.RandomScorer;
+import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.parse.PrologLanguageParser;
 import edu.uri.cs.tree.AndTree;
-import edu.uri.cs.tree.EnumeratedTree;
 import edu.uri.cs.tree.OrTree;
 import edu.uri.cs.util.FileReaderUtils;
 import edu.uri.cs.util.PropertyManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Ben on 7/26/18.
@@ -40,12 +45,14 @@ public class PopulationManager {
     private String hypothesisOutputDirectory;
     private Cloner cloner=new Cloner();
     private Random rand = new Random();
+    private MutationHandler mutationHandler;
 
     public PopulationManager(String backgroundFile, PropertyManager propertyManager) {
         this.backgroundFile = backgroundFile;
         this.propertyManager = propertyManager;
         hypothesisFactory = new HypothesisFactory(propertyManager);
         hypothesisScorerIF = new RandomScorer();
+        mutationHandler = new MutationHandler(propertyManager);
     }
 
     public synchronized void initialize() {
@@ -75,6 +82,8 @@ public class PopulationManager {
         crossOverProbList.add(sum);
 
         assert sum == 1.0 : "Invalid crossover parameters - must sum to one";
+
+        mutationHandler.initialize();
 
         backgroundParser = new PrologLanguageParser(backgroundFile);
         backgroundLanguage = backgroundParser.retrieveLanguage(false);
@@ -126,11 +135,11 @@ public class PopulationManager {
     }
 
     private List<Hypothesis> getOneSetOfChildren(double totalFitness, List<Double> partialSumsForSelection) {
-        int index1 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
-        int index2 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);;
+        int index1 = Utils.getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
+        int index2 = Utils.getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);;
         // make sure we have two different parents
         while (index2 == index1) {
-            index2 = getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
+            index2 = Utils.getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
         }
         Hypothesis parent1 = hypotheses.get(index1);
         Hypothesis parent2 = hypotheses.get(index2);
@@ -142,13 +151,14 @@ public class PopulationManager {
     private void mutateChildren(List<Hypothesis> children) {
         for (Hypothesis h : children) {
             // check if we should mutate and do so if applicable
+            mutationHandler.mutateHypothesis(h);
         }
     }
 
     private List<Hypothesis> performCrossover(Hypothesis parent1, Hypothesis parent2) {
         List<Hypothesis> children = new ArrayList<>();
         CrossoverType crossoverType =
-                CrossoverType.from(getIndexOfLeastExceedingNumber(Math.random(), crossOverProbList));
+                CrossoverType.from(Utils.getIndexOfLeastExceedingNumber(Math.random(), crossOverProbList));
         Hypothesis child1 = cloner.deepClone(parent1); child1.setElite(false);
         Hypothesis child2 = cloner.deepClone(parent2); child1.setElite(false);
         switch (crossoverType) {
@@ -195,15 +205,6 @@ public class PopulationManager {
         children.add(child1);
         children.add(child2);
         return children;
-    }
-
-    private int getIndexOfLeastExceedingNumber(double number, List<Double> listToCheck) {
-        for (int i = 0; i < listToCheck.size(); i++) {
-            if (listToCheck.get(i) >= number) {
-                return i;
-            }
-        }
-        return listToCheck.size() - 1;
     }
 
     private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
