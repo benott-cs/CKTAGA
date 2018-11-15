@@ -23,6 +23,7 @@ public class PropertyManager {
 
     public static final String CRKTAGA_MUTATION_PROB = "crktaga.mutation.prob";
     public static final String CRKTAGA_MUTATION_DOWNWARD_REFINEMENT_PROB = "crktaga.mutation.downward.refinement.prob";
+    public static final String CRKTAGA_MUTATION_IGNORE_PATTERN = "crktaga.mutation.ignore.pattern";
 
     public static final String CRKTAGA_MUTATION_DOWNWARD_CONSTANT = "crktaga.mutation.downward.params.constant.sub";
     public static final String CRKTAGA_MUTATION_DOWNWARD_VARIABLE = "crktaga.mutation.downward.params.variable.sub";

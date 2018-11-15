@@ -1,10 +1,14 @@
 package edu.uri.cs.ga;
 
+import com.igormaznitsa.prologparser.terms.PrologVariable;
 import edu.uri.cs.hypothesis.Hypothesis;
+import edu.uri.cs.tree.AndTree;
 import edu.uri.cs.util.PropertyManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Created by Ben on 11/5/18.
@@ -17,6 +21,7 @@ public class MutationHandler {
     private double downwardRefinementAddLiteralPositiveProbability;
     private List<Double> downwardProbList = new ArrayList<>();
     private List<Double> upwardProbList = new ArrayList<>();
+    private String ignorePattern = "";
 
     public MutationHandler(PropertyManager propertyManager) {
         this.propertyManager = propertyManager;
@@ -26,6 +31,7 @@ public class MutationHandler {
         mutationProbability = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_MUTATION_PROB);
         downwardRefinementProbability = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_MUTATION_DOWNWARD_REFINEMENT_PROB);
         downwardRefinementAddLiteralPositiveProbability = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_MUTATION_DOWNWARD_LITERAL_ADD_POS);
+        ignorePattern = propertyManager.getProperty(PropertyManager.CRKTAGA_MUTATION_IGNORE_PATTERN);
 
         double tempRate = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_MUTATION_DOWNWARD_CONSTANT);
         double sum = tempRate;
@@ -69,9 +75,22 @@ public class MutationHandler {
                 DownwardRefinementType.from(Utils.getIndexOfLeastExceedingNumber(Math.random(), downwardProbList));
         switch (refinementType) {
             case CONSTANT: {
+                int i = 0;
+                // get an or tree
+                AndTree a = h.getValueForMthStructure(h.getRandomRule()).getRandomChildExpression();
+                // get non-example name terms
+                h.getHypothesisLanguage().getAvailableTerms().stream().
+                        filter(t -> !Pattern.matches(ignorePattern, t.getText())).
+                        collect(Collectors.toList());
+                // get variables in language
+                h.getHypothesisLanguage().getAvailableTerms().stream().
+                        filter(t -> t instanceof PrologVariable).
+                        collect(Collectors.toList());
+                // Create a Pattern object
                 break;
             }
             case VARIABLE: {
+                int i = 0;
                 break;
             }
             case LITERAL_ADDITION:

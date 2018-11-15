@@ -37,6 +37,10 @@ public class Hypothesis {
         }
     }
 
+    public Language getHypothesisLanguage() {
+        return hypothesisLanguage;
+    }
+
     public double getScore() {
         return score;
     }
