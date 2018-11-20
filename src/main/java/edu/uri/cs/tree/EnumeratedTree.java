@@ -43,6 +43,15 @@ public class EnumeratedTree<T extends Object> {
                             .getActualTypeArguments()[0];
     }
 
+    public boolean removeTreeItem(T item) {
+        boolean ret = false;
+        if (childExpressions.contains(item)) {
+            childExpressions.remove(item);
+            generateTree();
+        }
+        return ret;
+    }
+
     public void addIterm(T item) {
         childExpressions.add(item);
     }

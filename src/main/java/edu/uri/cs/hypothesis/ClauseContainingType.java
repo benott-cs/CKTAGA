@@ -12,7 +12,7 @@ public class ClauseContainingType {
     private Class<?> type;
     private AbstractPrologTerm abstractPrologTerm;
     private AndTree clause;
-    private PrologStructure head;
+    private PrologStructure head = null;
 
     public ClauseContainingType(Class<?> type, AndTree andTree, AbstractPrologTerm abstractPrologTerm) {
         this.type = type;

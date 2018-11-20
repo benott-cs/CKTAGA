@@ -43,7 +43,7 @@ public class PopulationManager {
     private double eliteSurvivalRate = 0.0;
     private List<Double> crossOverProbList = new ArrayList<>();
     private String hypothesisOutputDirectory;
-    private Cloner cloner=new Cloner();
+    private Cloner cloner = new Cloner();
     private Random rand = new Random();
     private MutationHandler mutationHandler;
 

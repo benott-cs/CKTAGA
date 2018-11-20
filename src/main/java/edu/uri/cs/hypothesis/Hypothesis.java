@@ -1,17 +1,18 @@
 package edu.uri.cs.hypothesis;
 
-import com.igormaznitsa.prologparser.terms.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.igormaznitsa.prologparser.terms.AbstractPrologTerm;
+import com.igormaznitsa.prologparser.terms.PrologAtom;
+import com.igormaznitsa.prologparser.terms.PrologStructure;
+import com.igormaznitsa.prologparser.terms.PrologVariable;
+import com.rits.cloning.Cloner;
 import edu.uri.cs.parse.HypothesisParser;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.tree.AndTree;
 import edu.uri.cs.tree.OrTree;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -25,7 +26,10 @@ public class Hypothesis {
     private HashMap<PrologStructure, OrTree> hypothesis;
     private double score = 0.0;
     private boolean isElite = false;
+    @JsonIgnore
     private Random random = new Random();
+    @JsonIgnore
+    private Cloner cloner = new Cloner();
 
     public Hypothesis(Language backgroundLanguage, String hypothesisFile) {
         this.backgroundLanguage = backgroundLanguage;
@@ -86,12 +90,83 @@ public class Hypothesis {
         isElite = elite;
     }
 
+    public void refineVariable(ClauseContainingType clauseContainingType, AbstractPrologTerm abstractPrologTerm) {
+        PrologStructure head = null;
+        AndTree treeToUpdate = null;
+        if (Objects.nonNull(clauseContainingType.getHead())) {
+            head = cloner.deepClone(clauseContainingType.getHead());
+            treeToUpdate = cloner.deepClone(clauseContainingType.getClause());
+        }
+        if (Objects.isNull(treeToUpdate)) {
+            treeToUpdate = clauseContainingType.getClause();
+        }
+        if (Objects.nonNull(head)) {
+            for (OrTree o : hypothesis.values()) {
+                o.removeTreeItem(treeToUpdate);
+            }
+            List<Integer> itemsToReplace = new ArrayList<>();
+            for (int i = 0; i < head.getArity(); i++) {
+                if (head.getElement(i).equals(clauseContainingType.getAbstractPrologTerm())) {
+                    itemsToReplace.add(i);
+                }
+            }
+            for (Integer i : itemsToReplace) {
+                head.setElement(i, abstractPrologTerm);
+            }
+        }
+        Iterator<PrologStructure> iter = treeToUpdate.getAllChildExpressions().iterator();
+        while (iter.hasNext()) {
+            PrologStructure prologStructure = iter.next();
+            List<Integer> itemsToReplace = new ArrayList<>();
+            for (int i = 0; i < prologStructure.getArity(); i++) {
+                if (prologStructure.getElement(i).equals(clauseContainingType.getAbstractPrologTerm())) {
+                    itemsToReplace.add(i);
+                }
+            }
+            for (Integer i : itemsToReplace) {
+                prologStructure.setElement(i, abstractPrologTerm);
+            }
+        }
+
+        if (Objects.nonNull(head)) {
+            List<AndTree> andTrees = new ArrayList<>();
+            andTrees.add(treeToUpdate);
+            OrTree orTree = new OrTree(andTrees);
+            orTree.generateTree();
+            hypothesis.put(head, orTree);
+        }
+    }
+
     public ClauseContainingType getClauseWithRandomVariable() {
-        List<ClauseContainingType> allVariables = collectVariablesInHypothesis();
+        List<ClauseContainingType> allVariables = collectVariablesInHypothesis(null);
         return allVariables.get(ThreadLocalRandom.current().nextInt(allVariables.size()));
     }
 
-    private List<ClauseContainingType> collectVariablesInHypothesis() {
+    public ClauseContainingType getRandomVariableFromClause(AndTree andTree) {
+        List<ClauseContainingType> allVariables = collectVariablesInHypothesis(andTree);
+        return allVariables.get(ThreadLocalRandom.current().nextInt(allVariables.size()));
+    }
+
+    public List<AndTree> getListOfClausesWithAtLeastTwoUniqueVariables() {
+        List<ClauseContainingType> variables = collectVariablesInHypothesis(null);
+        Map<AndTree, Integer> counts = new HashMap<>();
+        for (ClauseContainingType clauseContainingType : variables) {
+            if (!counts.containsKey(clauseContainingType.getClause())) {
+                counts.put(clauseContainingType.getClause(), 1);
+            } else {
+                counts.put(clauseContainingType.getClause(),
+                        counts.get(clauseContainingType.getClause()) + 1);
+            }
+        }
+        // get and trees with more than 1 variable (i.e. 2 or more)
+        List<AndTree> ret = counts.entrySet().stream().
+                filter(e -> e.getValue() > 1).
+                map(e -> e.getKey()).
+                collect(Collectors.toList());
+        return ret;
+    }
+
+    public List<ClauseContainingType> collectVariablesInHypothesis(AndTree filterToThisClause) {
         List<ClauseContainingType> allVariables = new ArrayList<>();
         for (PrologStructure p : hypothesis.keySet()) {
             List<PrologVariable> variablesInHead = new ArrayList<>();
@@ -101,18 +176,20 @@ public class Hypothesis {
                 }
             }
             for (AndTree a : hypothesis.get(p).getAllChildExpressions()) {
-                for (PrologStructure prologStructure : a.getAllChildExpressions()) {
-                    for (int i = 0; i < prologStructure.getArity(); i++) {
-                        AbstractPrologTerm abstractPrologTerm = prologStructure.getElement(i);
-                        if (abstractPrologTerm instanceof PrologVariable) {
-                            PrologVariable variable = (PrologVariable) abstractPrologTerm;
-                            ClauseContainingType clauseContainingType =
-                                    new ClauseContainingType(PrologVariable.class, a, abstractPrologTerm);
-                            if (variablesInHead.contains(variable)) {
-                                clauseContainingType.setHead(p);
-                            }
-                            if (!allVariables.contains(clauseContainingType)) {
-                                allVariables.add(clauseContainingType);
+                if (Objects.isNull(filterToThisClause) || a.equals(filterToThisClause)) {
+                    for (PrologStructure prologStructure : a.getAllChildExpressions()) {
+                        for (int i = 0; i < prologStructure.getArity(); i++) {
+                            AbstractPrologTerm abstractPrologTerm = prologStructure.getElement(i);
+                            if (abstractPrologTerm instanceof PrologVariable) {
+                                PrologVariable variable = (PrologVariable) abstractPrologTerm;
+                                ClauseContainingType clauseContainingType =
+                                        new ClauseContainingType(PrologVariable.class, a, abstractPrologTerm);
+                                if (variablesInHead.contains(variable)) {
+                                    clauseContainingType.setHead(p);
+                                }
+                                if (!allVariables.contains(clauseContainingType)) {
+                                    allVariables.add(clauseContainingType);
+                                }
                             }
                         }
                     }

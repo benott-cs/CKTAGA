@@ -1,6 +1,7 @@
 package edu.uri.cs.ga;
 
-import com.igormaznitsa.prologparser.terms.*;
+import com.igormaznitsa.prologparser.terms.AbstractPrologTerm;
+import com.igormaznitsa.prologparser.terms.PrologAtom;
 import edu.uri.cs.hypothesis.ClauseContainingType;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.tree.AndTree;
@@ -8,8 +9,7 @@ import edu.uri.cs.util.PropertyManager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * Created by Ben on 11/5/18.
@@ -72,7 +72,7 @@ public class MutationHandler {
         }
     }
 
-    private void performDownwardRefinement(Hypothesis h) {
+    private boolean performDownwardRefinement(Hypothesis h) {
         boolean success = false;
         DownwardRefinementType refinementType;
         int tryCount = 0;
@@ -83,11 +83,22 @@ public class MutationHandler {
                 case CONSTANT: {
                     AbstractPrologTerm constant = h.getRandomPrologConstant(ignorePattern);
                     ClauseContainingType variable = h.getClauseWithRandomVariable();
+                    h.refineVariable(variable, constant);
+                    success = true;
                     break;
                 }
                 case VARIABLE: {
-                    PrologVariable prologVariable = h.getRandomPrologVariable(ignorePattern);
-                    ClauseContainingType variable = h.getClauseWithRandomVariable();
+                    List<AndTree> andTrees = h.getListOfClausesWithAtLeastTwoUniqueVariables();
+                    AndTree refineThis = andTrees.get(ThreadLocalRandom.current().nextInt(andTrees.size()));
+                    if (andTrees.size() > 0) {
+                        ClauseContainingType variable1 = h.getRandomVariableFromClause(refineThis);
+                        ClauseContainingType variable2 = h.getRandomVariableFromClause(refineThis);
+                        while(variable1.getAbstractPrologTerm().equals(variable2.getAbstractPrologTerm())) {
+                            variable2 = h.getRandomVariableFromClause(refineThis);
+                        }
+                        h.refineVariable(variable1, variable2.getAbstractPrologTerm());
+                        success = true;
+                    }
                     break;
                 }
                 case LITERAL_ADDITION:
@@ -99,6 +110,7 @@ public class MutationHandler {
             }
             tryCount++;
         }
+        return success;
     }
 
     private void performUpwardRefinement(Hypothesis h) {
