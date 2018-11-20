@@ -117,6 +117,7 @@ public class MutationHandler {
                     PrologStructure newLiteral = getPrologStructureFromAtom(prologAtom);
                     andTree.addIterm(newLiteral);
                     andTree.generateTree();
+                    success = true;
                     break;
                 default:
                     break;
