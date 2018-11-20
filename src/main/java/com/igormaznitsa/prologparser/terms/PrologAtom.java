@@ -29,6 +29,8 @@ public final class PrologAtom extends AbstractPrologTerm {
 
     private static final long serialVersionUID = -1859006002358498466L;
 
+    private int arity = 0;
+
     /**
      * A Constructor allows to make an instance based on a text part.
      *
@@ -81,5 +83,31 @@ public final class PrologAtom extends AbstractPrologTerm {
     @Override
     public String toString() {
         return new FastStringBuilder("\'").append(StringUtils.escapeString(text)).append('\'').toString();
+    }
+
+    public int getArity() {
+        return arity;
+    }
+
+    public void setArity(int arity) {
+        this.arity = arity;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        PrologAtom that = (PrologAtom) o;
+
+        return getArity() == that.getArity();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + getArity();
+        return result;
     }
 }

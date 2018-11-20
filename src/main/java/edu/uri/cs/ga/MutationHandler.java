@@ -2,6 +2,8 @@ package edu.uri.cs.ga;
 
 import com.igormaznitsa.prologparser.terms.AbstractPrologTerm;
 import com.igormaznitsa.prologparser.terms.PrologAtom;
+import com.igormaznitsa.prologparser.terms.PrologStructure;
+import com.igormaznitsa.prologparser.terms.PrologVariable;
 import edu.uri.cs.hypothesis.ClauseContainingType;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.tree.AndTree;
@@ -23,7 +25,10 @@ public class MutationHandler {
     private List<Double> downwardProbList = new ArrayList<>();
     private List<Double> upwardProbList = new ArrayList<>();
     private String ignorePattern = "";
+    private String atomIgnorePattern = "";
     private final int MAX_REFINEMENT_TRIES_ALLOWED = 5;
+    private static int variableCounter = 0;
+    private static final String CRKTAGA_CREATED_VARIABLE_NAME_START = "NEW_VAR_";
 
     public MutationHandler(PropertyManager propertyManager) {
         this.propertyManager = propertyManager;
@@ -34,6 +39,7 @@ public class MutationHandler {
         downwardRefinementProbability = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_MUTATION_DOWNWARD_REFINEMENT_PROB);
         downwardRefinementAddLiteralPositiveProbability = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_MUTATION_DOWNWARD_LITERAL_ADD_POS);
         ignorePattern = propertyManager.getProperty(PropertyManager.CRKTAGA_MUTATION_IGNORE_PATTERN);
+        atomIgnorePattern = propertyManager.getProperty(PropertyManager.CRKTAGA_ATOM_MUTATION_IGNORE_PATTERN);
 
         double tempRate = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_MUTATION_DOWNWARD_CONSTANT);
         double sum = tempRate;
@@ -102,8 +108,12 @@ public class MutationHandler {
                     break;
                 }
                 case LITERAL_ADDITION:
-                    PrologAtom prologAtom = h.getRandomPrologAtom(ignorePattern);
-
+                    PrologAtom prologAtom = h.getRandomPrologAtom(atomIgnorePattern);
+                    // Get an and tree
+                    AndTree andTree = h.getValueForMthStructure(h.getRandomRule()).getRandomChildExpression();
+                    PrologStructure newLiteral = getPrologStructureFromAtom(prologAtom);
+                    andTree.addIterm(newLiteral);
+                    andTree.generateTree();
                     break;
                 default:
                     break;
@@ -111,6 +121,16 @@ public class MutationHandler {
             tryCount++;
         }
         return success;
+    }
+
+    private PrologStructure getPrologStructureFromAtom(PrologAtom prologAtom) {
+        AbstractPrologTerm[] arguments = new AbstractPrologTerm[prologAtom.getArity()];
+        for (int i = 0; i < prologAtom.getArity(); i++) {
+            arguments[i] = new PrologVariable(CRKTAGA_CREATED_VARIABLE_NAME_START + variableCounter);
+            variableCounter++;
+        }
+        PrologStructure prologStructure = new PrologStructure(prologAtom, arguments);
+        return prologStructure;
     }
 
     private void performUpwardRefinement(Hypothesis h) {

@@ -51,12 +51,12 @@ public class LanguageParser {
         AbstractPrologTerm term = parser.nextSentence(theory);
         // structure will be null when the end of the theory has been reached
         while (term != null) {
-            processPrologStructure(term, language);
+            processPrologStructure(term, language, 0);
             term = parser.nextSentence();
         }
     }
 
-    protected void processPrologStructure(AbstractPrologTerm term, Language language) {
+    protected void processPrologStructure(AbstractPrologTerm term, Language language, int optionalArity) {
         switch (term.getType()) {
             case VAR:
             case ALEPH_STRING:
@@ -64,7 +64,9 @@ public class LanguageParser {
                 break;
             case ATOM:
                 if (PrologAtom.class.isInstance(term)) {
-                    language.addAtom((PrologAtom) term);
+                    PrologAtom prologAtom = (PrologAtom) term;
+                    prologAtom.setArity(optionalArity);
+                    language.addAtom(prologAtom);
                 } else {
                     language.addTerm((AbstractPrologNumericTerm)term);
                 }
@@ -72,10 +74,10 @@ public class LanguageParser {
             case STRUCT:
             case LIST:
                 PrologStructure structure = (PrologStructure) term;
-                processPrologStructure(structure.getFunctor(), language);
+                processPrologStructure(structure.getFunctor(), language, structure.getArity());
                 for (int i = 0; i < structure.getArity(); i++) {
                     if (Objects.nonNull(structure.getElement(i))) {
-                        processPrologStructure(structure.getElement(i), language);
+                        processPrologStructure(structure.getElement(i), language, 0);
                     }
                 }
                 break;

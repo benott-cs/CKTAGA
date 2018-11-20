@@ -21,8 +21,8 @@ public class HypothesisParser extends LanguageParser {
     }
 
     @Override
-    protected void processPrologStructure(AbstractPrologTerm term, Language language) {
-        super.processPrologStructure(term, language);
+    protected void processPrologStructure(AbstractPrologTerm term, Language language, int optionalArity) {
+        super.processPrologStructure(term, language, optionalArity);
         switch (term.getType()) {
             case STRUCT:
             case LIST:
