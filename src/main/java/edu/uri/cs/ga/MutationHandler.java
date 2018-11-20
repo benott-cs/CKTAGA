@@ -111,6 +111,9 @@ public class MutationHandler {
                     PrologAtom prologAtom = h.getRandomPrologAtom(atomIgnorePattern);
                     // Get an and tree
                     AndTree andTree = h.getValueForMthStructure(h.getRandomRule()).getRandomChildExpression();
+                    // note that we only add negative literals because we only support
+                    // Horn clauses; note that negative literals are equivalent to those
+                    // appearing in the body of the clause
                     PrologStructure newLiteral = getPrologStructureFromAtom(prologAtom);
                     andTree.addIterm(newLiteral);
                     andTree.generateTree();
