@@ -1,6 +1,7 @@
 package edu.uri.cs.ga;
 
-import com.igormaznitsa.prologparser.terms.PrologVariable;
+import com.igormaznitsa.prologparser.terms.*;
+import edu.uri.cs.hypothesis.ClauseContainingType;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.tree.AndTree;
 import edu.uri.cs.util.PropertyManager;
@@ -22,6 +23,7 @@ public class MutationHandler {
     private List<Double> downwardProbList = new ArrayList<>();
     private List<Double> upwardProbList = new ArrayList<>();
     private String ignorePattern = "";
+    private final int MAX_REFINEMENT_TRIES_ALLOWED = 5;
 
     public MutationHandler(PropertyManager propertyManager) {
         this.propertyManager = propertyManager;
@@ -71,32 +73,31 @@ public class MutationHandler {
     }
 
     private void performDownwardRefinement(Hypothesis h) {
-        DownwardRefinementType refinementType =
-                DownwardRefinementType.from(Utils.getIndexOfLeastExceedingNumber(Math.random(), downwardProbList));
-        switch (refinementType) {
-            case CONSTANT: {
-                int i = 0;
-                // get an or tree
-                AndTree a = h.getValueForMthStructure(h.getRandomRule()).getRandomChildExpression();
-                // get non-example name terms
-                h.getHypothesisLanguage().getAvailableTerms().stream().
-                        filter(t -> !Pattern.matches(ignorePattern, t.getText())).
-                        collect(Collectors.toList());
-                // get variables in language
-                h.getHypothesisLanguage().getAvailableTerms().stream().
-                        filter(t -> t instanceof PrologVariable).
-                        collect(Collectors.toList());
-                // Create a Pattern object
-                break;
+        boolean success = false;
+        DownwardRefinementType refinementType;
+        int tryCount = 0;
+        while (!success && tryCount < MAX_REFINEMENT_TRIES_ALLOWED) {
+            refinementType =
+                    DownwardRefinementType.from(Utils.getIndexOfLeastExceedingNumber(Math.random(), downwardProbList));
+            switch (refinementType) {
+                case CONSTANT: {
+                    AbstractPrologTerm constant = h.getRandomPrologConstant(ignorePattern);
+                    ClauseContainingType variable = h.getClauseWithRandomVariable();
+                    break;
+                }
+                case VARIABLE: {
+                    PrologVariable prologVariable = h.getRandomPrologVariable(ignorePattern);
+                    ClauseContainingType variable = h.getClauseWithRandomVariable();
+                    break;
+                }
+                case LITERAL_ADDITION:
+                    PrologAtom prologAtom = h.getRandomPrologAtom(ignorePattern);
+
+                    break;
+                default:
+                    break;
             }
-            case VARIABLE: {
-                int i = 0;
-                break;
-            }
-            case LITERAL_ADDITION:
-                break;
-            default:
-                break;
+            tryCount++;
         }
     }
 

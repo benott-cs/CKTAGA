@@ -1,13 +1,17 @@
 package edu.uri.cs.hypothesis;
 
-import com.igormaznitsa.prologparser.terms.PrologStructure;
+import com.igormaznitsa.prologparser.terms.*;
 import edu.uri.cs.parse.HypothesisParser;
 import edu.uri.cs.parse.Language;
+import edu.uri.cs.tree.AndTree;
 import edu.uri.cs.tree.OrTree;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -80,6 +84,54 @@ public class Hypothesis {
 
     public void setElite(boolean elite) {
         isElite = elite;
+    }
+
+    public ClauseContainingType getClauseWithRandomVariable() {
+        List<ClauseContainingType> allVariables = collectVariablesInHypothesis();
+        return allVariables.get(ThreadLocalRandom.current().nextInt(allVariables.size()));
+    }
+
+    private List<ClauseContainingType> collectVariablesInHypothesis() {
+        List<ClauseContainingType> allVariables = new ArrayList<>();
+        for (PrologStructure p : hypothesis.keySet()) {
+            List<PrologVariable> variablesInHead = new ArrayList<>();
+            for (int i = 0; i < p.getArity(); i++) {
+                if (p.getElement(i) instanceof PrologVariable) {
+                    variablesInHead.add((PrologVariable) p.getElement(i));
+                }
+            }
+            for (AndTree a : hypothesis.get(p).getAllChildExpressions()) {
+                for (PrologStructure prologStructure : a.getAllChildExpressions()) {
+                    for (int i = 0; i < prologStructure.getArity(); i++) {
+                        AbstractPrologTerm abstractPrologTerm = prologStructure.getElement(i);
+                        if (abstractPrologTerm instanceof PrologVariable) {
+                            PrologVariable variable = (PrologVariable) abstractPrologTerm;
+                            ClauseContainingType clauseContainingType =
+                                    new ClauseContainingType(PrologVariable.class, a, abstractPrologTerm);
+                            if (variablesInHead.contains(variable)) {
+                                clauseContainingType.setHead(p);
+                            }
+                            if (!allVariables.contains(clauseContainingType)) {
+                                allVariables.add(clauseContainingType);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return allVariables;
+    }
+
+    public AbstractPrologTerm getRandomPrologConstant(String ignorePattern) {
+        return hypothesisLanguage.getRandomPrologConstant(ignorePattern);
+    }
+
+    public PrologVariable getRandomPrologVariable(String ignorePattern) {
+        return hypothesisLanguage.getRandomPrologVariable(ignorePattern);
+    }
+
+    public PrologAtom getRandomPrologAtom(String ignorePattern) {
+        return hypothesisLanguage.getRandomPrologAtom(ignorePattern);
     }
 
     @Override

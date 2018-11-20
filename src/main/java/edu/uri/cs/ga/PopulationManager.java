@@ -151,7 +151,9 @@ public class PopulationManager {
     private void mutateChildren(List<Hypothesis> children) {
         for (Hypothesis h : children) {
             // check if we should mutate and do so if applicable
-            mutationHandler.mutateHypothesis(h);
+            if (!h.isElite()) {
+                mutationHandler.mutateHypothesis(h);
+            }
         }
     }
 

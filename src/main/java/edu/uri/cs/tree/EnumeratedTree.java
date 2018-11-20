@@ -60,6 +60,10 @@ public class EnumeratedTree<T extends Object> {
         return childExpressions.get(ThreadLocalRandom.current().nextInt(childExpressions.size()));
     }
 
+    public List<T> getAllChildExpressions() {
+        return childExpressions;
+    }
+
     private void shuffle() {
         Collections.shuffle(childExpressions);
     }
