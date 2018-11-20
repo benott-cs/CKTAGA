@@ -99,7 +99,7 @@ public class MutationHandler {
                     if (andTrees.size() > 0) {
                         ClauseContainingType variable1 = h.getRandomVariableFromClause(refineThis);
                         ClauseContainingType variable2 = h.getRandomVariableFromClause(refineThis);
-                        while(variable1.getAbstractPrologTerm().equals(variable2.getAbstractPrologTerm())) {
+                        while (variable1.getAbstractPrologTerm().equals(variable2.getAbstractPrologTerm())) {
                             variable2 = h.getRandomVariableFromClause(refineThis);
                         }
                         h.refineVariable(variable1, variable2.getAbstractPrologTerm());
@@ -137,20 +137,33 @@ public class MutationHandler {
         return prologStructure;
     }
 
-    private void performUpwardRefinement(Hypothesis h) {
-        UpwardRefinementType refinementType =
-                UpwardRefinementType.from(Utils.getIndexOfLeastExceedingNumber(Math.random(), upwardProbList));
-        switch (refinementType) {
-            case CONSTANT: {
-                break;
+    private boolean performUpwardRefinement(Hypothesis h) {
+        boolean success = false;
+        UpwardRefinementType refinementType;
+        int tryCount = 0;
+        while (!success && tryCount < MAX_REFINEMENT_TRIES_ALLOWED) {
+            refinementType =
+                    UpwardRefinementType.from(Utils.getIndexOfLeastExceedingNumber(Math.random(), upwardProbList));
+            switch (refinementType) {
+                case CONSTANT: {
+                    break;
+                }
+                case VARIABLE: {
+                    break;
+                }
+                case LITERAL_REMOVAL:
+                    // Get an and tree
+                    AndTree andTree = h.getValueForMthStructure(h.getRandomRule()).getRandomChildExpression();
+                    PrologStructure literalToRemove = andTree.getRandomChildExpression();
+                    andTree.removeTreeItem(literalToRemove);
+                    andTree.generateTree();
+                    success = true;
+                    break;
+                default:
+                    break;
             }
-            case VARIABLE: {
-                break;
-            }
-            case LITERAL_REMOVAL:
-                break;
-            default:
-                break;
+            tryCount++;
         }
+        return success;
     }
 }
