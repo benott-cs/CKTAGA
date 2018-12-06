@@ -32,7 +32,7 @@ public class PropertyManager {
     public static final String CRKTAGA_MUTATION_DOWNWARD_LITERAL_ADD_POS = "crktaga.mutation.downward.params.literal.addition.positive";
 
     public static final String CRKTAGA_MUTATION_UPWARD_CONSTANT = "crktaga.mutation.upward.params.constant.sub";
-    public static final String CRKTAGA_MUTATION_UPWARD_VARIABLE = "crktaga.mutation.downupwardward.params.variable.sub";
+    public static final String CRKTAGA_MUTATION_UPWARD_VARIABLE = "crktaga.mutation.upward.params.variable.sub";
     public static final String CRKTAGA_MUTATION_UPWARD_LITERAL_REMOVE = "crktaga.mutation.upward.params.literal.removal";
 
     public static final String ALEPH_HYPOTHESIS_OUTPUT_INITIAL_STRING = "aleph.hypothesis.output.initial.string";

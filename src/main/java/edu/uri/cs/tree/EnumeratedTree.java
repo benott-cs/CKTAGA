@@ -111,7 +111,7 @@ public class EnumeratedTree<T extends Object> {
             if (partitionSize == 0) {
                 partitionSize++;
             }
-            List<T> firstPortion = childExpressions.subList(0, partitionSize - 1);
+            List<T> firstPortion = childExpressions.subList(0, partitionSize);
             List<T> secondPortion = childExpressions.subList(partitionSize, childExpressions.size());
 
             if (AndTree.class.getName().equals(typeOfT.getName())) {

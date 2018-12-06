@@ -11,6 +11,7 @@ import edu.uri.cs.util.PropertyManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
@@ -130,11 +131,16 @@ public class MutationHandler {
     private PrologStructure getPrologStructureFromAtom(PrologAtom prologAtom) {
         AbstractPrologTerm[] arguments = new AbstractPrologTerm[prologAtom.getArity()];
         for (int i = 0; i < prologAtom.getArity(); i++) {
-            arguments[i] = new PrologVariable(CRKTAGA_CREATED_VARIABLE_NAME_START + variableCounter);
-            variableCounter++;
+            arguments[i] = getNextNewVariable();
         }
         PrologStructure prologStructure = new PrologStructure(prologAtom, arguments);
         return prologStructure;
+    }
+
+    private PrologVariable getNextNewVariable() {
+        String name = CRKTAGA_CREATED_VARIABLE_NAME_START + variableCounter;
+        variableCounter++;
+        return new PrologVariable(name);
     }
 
     private boolean performUpwardRefinement(Hypothesis h) {
@@ -146,9 +152,23 @@ public class MutationHandler {
                     UpwardRefinementType.from(Utils.getIndexOfLeastExceedingNumber(Math.random(), upwardProbList));
             switch (refinementType) {
                 case CONSTANT: {
+                    ClauseContainingType clauseWithConst = h.getClauseWithRandomConstant();
+                    if (Objects.nonNull(clauseWithConst)) {
+                        AndTree andTree = h.generateUpwardRefinementForVarOrConst(clauseWithConst.getClause(),
+                                clauseWithConst.getAbstractPrologTerm(), getNextNewVariable());
+                        andTree.generateTree();
+                        success = true;
+                    }
                     break;
                 }
                 case VARIABLE: {
+                    ClauseContainingType clauseWithVariable = h.getClauseWithRandomVariable();
+                    if (Objects.nonNull(clauseWithVariable)) {
+                        AndTree andTree = h.generateUpwardRefinementForVarOrConst(clauseWithVariable.getClause(),
+                                clauseWithVariable.getAbstractPrologTerm(), getNextNewVariable());
+                        andTree.generateTree();
+                        success = true;
+                    }
                     break;
                 }
                 case LITERAL_REMOVAL:
