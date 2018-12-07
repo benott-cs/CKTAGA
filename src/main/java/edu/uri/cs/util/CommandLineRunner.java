@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.function.Consumer;
 
@@ -22,20 +23,25 @@ public class CommandLineRunner {
 
     public void runPerlCommand(String perlScriptToRun) {
         String[] cmd = {perlLocation, perlScriptToRun};
-        runCommand(cmd);
+        runCommand(cmd, null);
     }
 
     public void runCommand(String command) {
-        String[] cmd = {command};
-        runCommand(cmd);
+        runCommand(command, null);
     }
 
-    private void runCommand(String[] cmd) {
+    public void runCommand(String command, Consumer<String> commandLineOutputParser) {
+        String[] cmd = {command};
+        runCommand(cmd, commandLineOutputParser);
+    }
+
+    private void runCommand(String[] cmd, Consumer<String> commandLineOutputParser) {
         try {
             ProcessBuilder pb = new ProcessBuilder(cmd);
             Process p = pb.start();
             StreamGobbler streamGobbler =
-                    new StreamGobbler(p.getInputStream(), System.out::println);
+                    new StreamGobbler(p.getInputStream(),
+                            Objects.isNull(commandLineOutputParser) ? System.out::println : commandLineOutputParser);
             Executors.newSingleThreadExecutor().submit(streamGobbler);
             int exitCode = p.waitFor();
             assert exitCode == 0;

@@ -403,6 +403,139 @@ public class PrologStructure extends AbstractPrologTerm {
         return builder.toString();
     }
 
+    public String getAlephString() {
+        final FastStringBuilder builder = new FastStringBuilder(64);
+        if (functor.getType() == PrologTermType.OPERATOR) {
+            // an operator based struct
+            final Operator operatorFunctor = (Operator) functor;
+            final String opName = operatorFunctor.getText();
+            final int priority = operatorFunctor.getPriority();
+
+            final String text1 = getElement(0).toString();
+            final String text2 = getArity() > 1 ? getElement(1).toString()
+                    : null;
+
+            switch (operatorFunctor.getOperatorType()) {
+                case FX: {
+                    builder.append(opName).append(' ');
+
+                    if (getElement(0).getPriority() >= priority) {
+                        builder.append('(').append(text1).append(')');
+                    } else {
+                        builder.append(text1);
+                    }
+                }
+                break;
+                case FY: {
+                    builder.append(opName);
+                    builder.append(' ');
+
+                    if (getElement(0).getPriority() > priority) {
+                        builder.append('(').append(text1).append(')');
+                    } else {
+                        builder.append(text1);
+                    }
+                }
+                break;
+                case XF: {
+                    if (getElement(0).getPriority() >= priority) {
+                        builder.append('(').append(text1).append(')');
+                    } else {
+                        builder.append(text1);
+                    }
+
+                    builder.append(' ').append(opName);
+                }
+                break;
+                case YF: {
+                    if (getElement(0).getPriority() > priority) {
+                        builder.append('(').append(text1).append(')');
+                    } else {
+                        builder.append(text1);
+                    }
+
+                    builder.append(' ').append(opName);
+                }
+                break;
+                case XFX: {
+                    if (getElement(0).getPriority() >= priority) {
+                        builder.append('(').append(text1).append(')');
+                    } else {
+                        builder.append(text1);
+                    }
+
+                    builder.append(' ').append(opName).append(' ');
+
+                    if (getElement(1).getPriority() >= priority) {
+                        builder.append('(').append(text2).append(')');
+                    } else {
+                        builder.append(text2);
+                    }
+                }
+                break;
+                case YFX: {
+                    if (getElement(0).getPriority() > priority) {
+                        builder.append('(').append(text1).append(')');
+                    } else {
+                        builder.append(text1);
+                    }
+
+                    builder.append(' ').append(opName).append(' ');
+
+                    if (getElement(1).getPriority() >= priority) {
+                        builder.append('(').append(text2).append(')');
+                    } else {
+                        builder.append(text2);
+                    }
+                }
+                break;
+                case XFY: {
+                    if (getElement(0).getPriority() >= priority) {
+                        builder.append('(').append(text1).append(')');
+                    } else {
+                        builder.append(text1);
+                    }
+
+                    builder.append(' ').append(opName).append(' ');
+
+                    if (getElement(1).getPriority() > priority) {
+                        builder.append('(').append(text2).append(')');
+                    } else {
+                        builder.append(text2);
+                    }
+                }
+                break;
+                default:
+                    throw new CriticalSoftwareDefectError();
+            }
+
+        } else {
+            String functorText = functor.getText();
+
+            if ("!".equals(functorText) && getArity() == 0) {
+                // special structure detected
+                return functorText;
+            }
+
+            // just structure
+            functorText = functor.getText();
+            builder.append(functorText);
+            builder.append('(');
+            boolean next = false;
+            for (final AbstractPrologTerm term : elements) {
+                if (next) {
+                    builder.append(", ");
+                } else {
+                    next = true;
+                }
+                builder.append(term.getText());
+            }
+            builder.append(')');
+
+        }
+        return builder.toString();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

@@ -7,7 +7,7 @@ import edu.uri.cs.hypothesis.Hypothesis;
  */
 public class RandomScorer implements HypothesisScorerIF {
     @Override
-    public double computeScore(Hypothesis h) {
+    public double computeScore(Hypothesis h, int hypothesisNumber, String outputDir) {
         double score = 0.2 + 0.8*Math.random();
         h.setScore(score);
         return score;

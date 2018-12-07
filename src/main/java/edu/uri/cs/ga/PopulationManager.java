@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
+import edu.uri.cs.ga.scoring.AlephAccuracyScorer;
 import edu.uri.cs.ga.scoring.HypothesisScorerIF;
 import edu.uri.cs.ga.scoring.RandomScorer;
 import edu.uri.cs.hypothesis.Hypothesis;
@@ -46,12 +47,13 @@ public class PopulationManager {
     private Cloner cloner = new Cloner();
     private Random rand = new Random();
     private MutationHandler mutationHandler;
+    private static int currentGeneration = 0;
 
     public PopulationManager(String backgroundFile, PropertyManager propertyManager) {
         this.backgroundFile = backgroundFile;
         this.propertyManager = propertyManager;
         hypothesisFactory = new HypothesisFactory(propertyManager);
-        hypothesisScorerIF = new RandomScorer();
+        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
         mutationHandler = new MutationHandler(propertyManager);
     }
 
@@ -103,12 +105,13 @@ public class PopulationManager {
     }
 
     public void runGA() {
-        writeHypothesesToFiles(0);
         int numberOfEliteHypotheses = (int)Math.floor(hypotheses.size() * eliteSurvivalRate);
         if (eliteSurvivalRate > 0 && numberOfEliteHypotheses <= 0) {
             numberOfEliteHypotheses = 1;
         }
+        printBestHypothesis("BEGIN");
         for (int i = 1; i < numberOfGenerations; i++) {
+            currentGeneration = i;
             List<Hypothesis> nextGenHypotheses = new ArrayList<>();
             hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
                     .reversed()));
@@ -130,8 +133,53 @@ public class PopulationManager {
             }
             hypotheses = nextGenHypotheses;
             scoreHypotheses();
-            writeHypothesesToFiles(i);
         }
+        printBestHypothesis("END");
+    }
+
+    private void printBestHypothesis(String notes) {
+        hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
+                .reversed()));
+        Hypothesis bestHypothesis = hypotheses.get(0);
+        System.out.println(notes + " -- the best hypothesis below had a score of: " + bestHypothesis.getScore());
+        bestHypothesis.getHypothesisDump().forEach(System.out::println);
+    }
+
+    private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
+        for (int i = 0; i < numberOfEliteHypotheses; i++) {
+            Hypothesis clone = cloner.deepClone(hypotheses.get(i));
+            clone.setElite(true);
+            nextGen.add(clone);
+        }
+    }
+
+    private void writeHypothesesToFiles(String outputDir) {
+        File directory = new File(outputDir);
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
+        ObjectMapper om = new ObjectMapper();
+        om.configure(SerializationFeature.INDENT_OUTPUT, true);
+        om.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
+        int i = 0;
+        for (Hypothesis h : hypotheses) {
+            try {
+                om.writeValue(new File(outputDir + "/hypothesis_" + i + ".json"), h);
+                i++;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private void scoreHypotheses() {
+        String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
+        int i = 0;
+        for (Hypothesis h : hypotheses) {
+            hypothesisScorerIF.computeScore(h, i, outputDir);
+            i++;
+        }
+        writeHypothesesToFiles(outputDir);
     }
 
     private List<Hypothesis> getOneSetOfChildren(double totalFitness, List<Double> partialSumsForSelection) {
@@ -162,7 +210,7 @@ public class PopulationManager {
         CrossoverType crossoverType =
                 CrossoverType.from(Utils.getIndexOfLeastExceedingNumber(Math.random(), crossOverProbList));
         Hypothesis child1 = cloner.deepClone(parent1); child1.setElite(false);
-        Hypothesis child2 = cloner.deepClone(parent2); child1.setElite(false);
+        Hypothesis child2 = cloner.deepClone(parent2); child2.setElite(false);
         switch (crossoverType) {
             case RULE_SWAP: {
                 // Note that if there is only one rule (i.e. one unique
@@ -207,40 +255,6 @@ public class PopulationManager {
         children.add(child1);
         children.add(child2);
         return children;
-    }
-
-    private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
-        for (int i = 0; i < numberOfEliteHypotheses; i++) {
-            Hypothesis clone = cloner.deepClone(hypotheses.get(i));
-            clone.setElite(true);
-            nextGen.add(clone);
-        }
-    }
-
-    private void writeHypothesesToFiles(int generation) {
-        String outputDir = hypothesisOutputDirectory + "/GEN_" + generation;
-        File directory = new File(outputDir);
-        if (!directory.exists()) {
-            directory.mkdir();
-        }
-        ObjectMapper om = new ObjectMapper();
-        om.configure(SerializationFeature.INDENT_OUTPUT, true);
-        om.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-        int i = 0;
-        for (Hypothesis h : hypotheses) {
-            try {
-                om.writeValue(new File(outputDir + "/hypothesis_" + i + ".json"), h);
-                i++;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void scoreHypotheses() {
-        for (Hypothesis h : hypotheses) {
-            hypothesisScorerIF.computeScore(h);
-        }
     }
 
     public synchronized void readHypothesisFromFile(String hypothesisFile) {

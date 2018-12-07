@@ -33,6 +33,10 @@ public class Hypothesis {
         this.hypothesisFile = hypothesisFile;
     }
 
+    public HashMap<PrologStructure, OrTree> getHypothesis() {
+        return hypothesis;
+    }
+
     public void initialize() {
         HypothesisParser hypothesisParser = new HypothesisParser();
         hypothesisLanguage = hypothesisParser.retrieveLanguageForPrologFile(hypothesisFile, backgroundLanguage);
@@ -269,6 +273,22 @@ public class Hypothesis {
 
     public PrologAtom getRandomPrologAtom(String ignorePattern) {
         return hypothesisLanguage.getRandomPrologAtom(ignorePattern);
+    }
+
+    public List<String> getHypothesisDump() {
+        List<String> hypothesisDump = new ArrayList<>();
+        for (PrologStructure head : hypothesis.keySet()) {
+            OrTree conceptDescription = hypothesis.get(head);
+            for (AndTree clause : conceptDescription.getAllChildExpressions()) {
+                String clauseString = "";
+                for (PrologStructure prologStructure : clause.getAllChildExpressions()) {
+                    clauseString += (clauseString.isEmpty() ? prologStructure.getAlephString() :
+                            ", " + prologStructure.getAlephString());
+                }
+                hypothesisDump.add(head.getAlephString() + " :- " + clauseString + ".");
+            }
+        }
+        return hypothesisDump;
     }
 
     @Override

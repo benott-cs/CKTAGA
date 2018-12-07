@@ -7,6 +7,7 @@ import edu.uri.cs.util.PropertyManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Created by Ben on 7/26/18.
@@ -45,6 +46,15 @@ public class HypothesisFactory {
         return outputFileName;
     }
 
+    public void evaluateHypothesis(String hypothesisFileToEvaluate, boolean testPositive,
+                                     Consumer<String> commandLineOutputParser) {
+        List<String> runnerScriptInputList = new ArrayList<>();
+        createEvaluationScript(runnerScriptInputList, hypothesisFileToEvaluate, testPositive);
+        String scriptName = getBackgroundDataRootDir(backgroundDataFileName) + "logenProEvaluate.pl";
+        FileReaderUtils.writeFile(scriptName, runnerScriptInputList, true);
+        commandLineRunner.runCommand(scriptName, commandLineOutputParser);
+    }
+
     // shuffle the data so that the inputs are in a randomized order
     private void createInputFiles(List<String> positiveExamples, List<String> negativeExamples) {
         Collections.shuffle(positiveExamples);
@@ -62,6 +72,17 @@ public class HypothesisFactory {
         outputFileName = getBackgroundDataRootDir(backgroundDataFileName) + outputFileName;
         strings.add(COMMAND_TOKEN + "write_rules('" + outputFileName + "').");
         return outputFileName;
+    }
+
+    private void createEvaluationScript(List<String> strings, String hypothesisFileToEvaluate,
+                                          boolean testPositive) {
+        strings.add("#!" + yapLocation + " -L");
+        strings.add(COMMAND_TOKEN + "['" + alephLocation + "'].");
+        strings.add(COMMAND_TOKEN + "['" + backgroundDataFileName + "'].");
+        strings.add(COMMAND_TOKEN + "['" + hypothesisFileToEvaluate + "'].");
+        strings.add(COMMAND_TOKEN + "test('" +
+                (testPositive ? positiveExamplesFile : negativeExamplesFile) +
+                "', show, cov, tot).");
     }
 
     private String getBackgroundDataRootDir(String backgroundDataFileName) {
