@@ -8,6 +8,7 @@ import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.ga.scoring.AlephAccuracyScorer;
+import edu.uri.cs.ga.scoring.CenteredKTAScorer;
 import edu.uri.cs.ga.scoring.HypothesisScorerIF;
 import edu.uri.cs.ga.scoring.RandomScorer;
 import edu.uri.cs.hypothesis.Hypothesis;
@@ -53,7 +54,9 @@ public class PopulationManager {
         this.backgroundFile = backgroundFile;
         this.propertyManager = propertyManager;
         hypothesisFactory = new HypothesisFactory(propertyManager);
-        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
+        hypothesisScorerIF = new CenteredKTAScorer(hypothesisFactory, false);
+//        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
+//        hypothesisScorerIF = new RandomScorer();
         mutationHandler = new MutationHandler(propertyManager);
     }
 

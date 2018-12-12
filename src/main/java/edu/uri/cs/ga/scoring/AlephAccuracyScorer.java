@@ -1,14 +1,9 @@
 package edu.uri.cs.ga.scoring;
 
-import com.igormaznitsa.prologparser.terms.PrologStructure;
 import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.hypothesis.Hypothesis;
-import edu.uri.cs.tree.AndTree;
-import edu.uri.cs.tree.OrTree;
 import edu.uri.cs.util.FileReaderUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
