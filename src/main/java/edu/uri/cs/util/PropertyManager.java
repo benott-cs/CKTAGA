@@ -43,6 +43,11 @@ public class PropertyManager {
     public static final String YAP_LOCATION = "yap.location";
     public static final String PERL_LOCATION = "perl.location";
 
+    public static final String KERNEL_TYPE = "crktaga.kernel.parameter.type";
+    public static final String KERNEL_DEGREE = "crktaga.kernel.parameter.degree";
+    public static final String KERNEL_COEFFICIENT = "crktaga.kernel.parameter.coef0";
+    public static final String KERNEL_GAMMA = "crktaga.kernel.parameter.gamma";
+
     private Properties properties;
     private URL propertyFileURL;
 

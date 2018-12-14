@@ -1,6 +1,7 @@
 package edu.uri.cs.ga.scoring;
 
 import edu.uri.cs.aleph.HypothesisFactory;
+import edu.uri.cs.ga.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.util.FileReaderUtils;
 
@@ -16,9 +17,11 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
     private HypothesisFactory hypothesisFactory;
     private boolean weighted;
     private CommandLineOutputParser outputParser;
+    private KernelHelper kernelHelper;
 
-    public CenteredKTAScorer(HypothesisFactory hypothesisFactory, boolean weighted) {
+    public CenteredKTAScorer(HypothesisFactory hypothesisFactory, KernelHelper kernelHelper, boolean weighted) {
         this.hypothesisFactory = hypothesisFactory;
+        this.kernelHelper = kernelHelper;
         this.weighted = weighted;
     }
 
@@ -47,25 +50,27 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
 
         validateParser(outputParser);
 
-        // Compute the totals and return
-        h.setScore(computeAccuracy());
-        return h.getScore();
-    }
-
-    private double computeAccuracy() {
         int size = outputParser.targets.keySet().size();
         double[][] targetMatrix = new double[size][size];
         double[][] kernelMatrix = new double[size][size];
+
+        // Compute the totals and return
+        h.setScore(computeAccuracy(size, targetMatrix, kernelMatrix));
+        return h.getScore();
+    }
+
+    private double computeAccuracy(int size, double[][] targetMatrix, double[][] kernelMatrix) {
+
         computeMatrices(size, targetMatrix, kernelMatrix);
 
         System.out.println("Matrices... before centering");
-        printMatrix(kernelMatrix); printMatrix(targetMatrix);
+        printMatrix(kernelMatrix, "Kernel Matrix"); printMatrix(targetMatrix, "Target Matrix");
 
         center_kernel_matrix(size, kernelMatrix);
         center_kernel_matrix(size, targetMatrix);
 
         System.out.println("Matrices... after centering");
-        printMatrix(kernelMatrix); printMatrix(targetMatrix);
+        printMatrix(kernelMatrix, "Kernel Matrix"); printMatrix(targetMatrix, "Target Matrix");
 
         double numer = compute_frobenius_product(kernelMatrix, targetMatrix);
         double denom = compute_frobenius_norm(kernelMatrix, kernelMatrix);
@@ -78,11 +83,6 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         double res2 = compute_frobenius_product(n, n);
         return Math.sqrt(res1 * res2);
     }
-
-//    private double compute_frobenius_norm(double[][] m) {
-//        double res = compute_frobenius_product(m, m);
-//        return Math.sqrt(res);
-//    }
 
     private double compute_frobenius_product(double[][] m, double[][] n) {
         double res = 0.0;
@@ -101,7 +101,8 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         return res;
     }
 
-    private void printMatrix(double[][] table) {
+    private void printMatrix(double[][] table, String printFirst) {
+        System.out.println(printFirst);
         for(int r=0; r<table.length; r++) {
             for(int c=0; c<table[r].length; c++) {
                 System.out.print(table[r][c] + "\t");
@@ -152,12 +153,13 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         double[][] featureVecMatrix = new double[size][size];
         int k = 0;
         for (String key : outputParser.targets.keySet()) {
-            targetVec[k] = outputParser.targets.get(key); k++;
+            targetVec[k] = outputParser.targets.get(key);
             featureVecMatrix[k] = outputParser.coveredClauses.get(key).
                     stream().mapToDouble(Double::doubleValue).toArray();
+            k++;
         }
         for (int i = 0; i < size; i++) {
-            for (int j = i; j < size; i++) {
+            for (int j = i; j < size; j++) {
                 kernelMatrix[i][j] = computeKernelValue(featureVecMatrix[i], featureVecMatrix[j]);
                 targetMatrix[i][j] = targetVec[i] * targetVec[j];
                 if (i != j) {
@@ -170,7 +172,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
     }
 
     private double computeKernelValue(double[] v1, double[] v2) {
-        return 0;
+        return kernelHelper.computeKernel(v1, v2);
     }
 
     private void validateParser(CommandLineOutputParser outputParser) {
