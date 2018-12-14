@@ -97,12 +97,19 @@
             <artifactId>cloning</artifactId>
             <version>1.9.10</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.ojalgo/ojalgo -->
         <dependency>
-            <groupId>org.ojalgo</groupId>
-            <artifactId>ojalgo</artifactId>
-            <version>46.3.0</version>
+            <groupId>tw.edu.ntu.csie</groupId>
+            <artifactId>libsvm</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>/media/sf_School/PhDCourses/dissertation/Code/java-prolog-parser/libsvm-3.23/java/libsvm.jar</systemPath>
         </dependency>
+        <!--&lt;!&ndash; https://mvnrepository.com/artifact/org.ojalgo/ojalgo &ndash;&gt;-->
+        <!--<dependency>-->
+            <!--<groupId>org.ojalgo</groupId>-->
+            <!--<artifactId>ojalgo</artifactId>-->
+            <!--<version>46.3.0</version>-->
+        <!--</dependency>-->
 
     </dependencies>
 
