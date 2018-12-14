@@ -14,5 +14,6 @@ public class CKTAGA {
         Logenpro logenpro = new Logenpro(propertyManager);
         logenpro.initialize();
         logenpro.evolve();
+        System.exit(0);
     }
 }

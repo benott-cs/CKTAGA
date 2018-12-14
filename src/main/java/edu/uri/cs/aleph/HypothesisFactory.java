@@ -1,5 +1,6 @@
 package edu.uri.cs.aleph;
 
+import edu.uri.cs.ga.scoring.ConsumerWithEnd;
 import edu.uri.cs.util.CommandLineRunner;
 import edu.uri.cs.util.FileReaderUtils;
 import edu.uri.cs.util.PropertyManager;
@@ -47,7 +48,7 @@ public class HypothesisFactory {
     }
 
     public void evaluateHypothesis(String hypothesisFileToEvaluate, boolean testPositive,
-                                     Consumer<String> commandLineOutputParser) {
+                                     ConsumerWithEnd<String> commandLineOutputParser) {
         List<String> runnerScriptInputList = new ArrayList<>();
         createEvaluationScript(runnerScriptInputList, hypothesisFileToEvaluate, testPositive);
         String scriptName = getBackgroundDataRootDir(backgroundDataFileName) + "logenProEvaluate.pl";

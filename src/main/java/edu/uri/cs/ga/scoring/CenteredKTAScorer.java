@@ -6,6 +6,7 @@ import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.util.FileReaderUtils;
 
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,7 +36,8 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         int i = 0;
         outputParser = new CommandLineOutputParser(false);
         for (String clause : hypothesisDump) {
-            tmp.clear(); tmp.add(clause);
+            tmp.clear();
+            tmp.add(clause);
             String hypothesisOutputFile = outputDir + "/hypothesis_" + hypothesisNumber + "_clause_" + i + ".pl";
             FileReaderUtils.writeFile(hypothesisOutputFile,
                     tmp, false);
@@ -46,15 +48,15 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
 
             // 3 - evaluate negative and parse output
             outputParser.setNegate(true);
+            outputParser.completable = true;
             hypothesisFactory.evaluateHypothesis(hypothesisOutputFile, false, outputParser);
         }
 
         try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
+            validateParser(outputParser, 15, 20, hypothesisDump.size());
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        validateParser(outputParser);
 
         int size = outputParser.targets.keySet().size();
         double[][] targetMatrix = new double[size][size];
@@ -115,8 +117,8 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
 
     private void printMatrix(double[][] table, String printFirst) {
         System.out.println(printFirst);
-        for(int r=0; r<table.length; r++) {
-            for(int c=0; c<table[r].length; c++) {
+        for (int r = 0; r < table.length; r++) {
+            for (int c = 0; c < table[r].length; c++) {
                 System.out.print(table[r][c] + "\t");
             }
             System.out.println();
@@ -191,7 +193,41 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         return kernelHelper.computeKernel(v1, v2);
     }
 
-    private synchronized void validateParser(CommandLineOutputParser outputParser) {
+    private void validateParser(CommandLineOutputParser outputParser, int numRetries,
+                                long retryInterval, int hypothesisSize) throws Exception {
+        int numTries = 0;
+        boolean success = false;
+        Exception lastException = null;
+        while (!success && numTries < numRetries) {
+            try {
+                success = validateParser(outputParser, hypothesisSize);
+            } catch (IllegalStateException e) {
+                lastException = e;
+                try {
+                    Thread.sleep(retryInterval);
+                } catch (InterruptedException e1) {
+                    e1.printStackTrace();
+                }
+            }
+            numTries++;
+        }
+        if (!success) {
+            throw lastException;
+        }
+    }
+
+    private boolean validateParser(CommandLineOutputParser outputParser, int hypothesisSize) throws IllegalStateException {
+        int retryAttempt = 0;
+        while (!outputParser.completed && retryAttempt < 10) {
+            synchronized (outputParser.coveredClauses) {
+                try {
+                    outputParser.coveredClauses.wait(2l);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            retryAttempt++;
+        }
         Set<String> intersect = new HashSet<String>(outputParser.targets.keySet());
         intersect.retainAll(outputParser.coveredClauses.keySet());
         boolean ok = (outputParser.targets.size() == outputParser.coveredClauses.keySet().size()) &&
@@ -199,31 +235,37 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         if (!ok) {
             throw new IllegalStateException("Sizes of matrices do not align!");
         }
-        boolean first = true; int size = 0;
+        boolean first = true;
+        int vecLength = 0;
         ok = true;
         Iterator<ArrayList<Double>> iter = outputParser.coveredClauses.values().iterator();
         while (iter.hasNext()) {
             ArrayList<Double> vector = iter.next();
             if (first) {
-                size = vector.size();
+                vecLength = vector.size();
+                if (vecLength != hypothesisSize) {
+                    throw new IllegalStateException("Feature vector doesn't have length equal to number of clauses!");
+                }
                 first = false;
-            }
-            else if (vector.size() != size) {
+            } else if (vector.size() != vecLength) {
                 ok = false;
             }
         }
         if (!ok) {
             throw new IllegalStateException("Feature vectors don't all have the same length!");
         }
+        return true;
     }
 
-    private class CommandLineOutputParser implements Consumer<String> {
+    private class CommandLineOutputParser implements ConsumerWithEnd<String> {
 
         TreeMap<String, ArrayList<Double>> coveredClauses = new TreeMap<>();
         TreeMap<String, Double> targets = new TreeMap<>();
         private static final String COVERED_STRING = "covered]";
         private static final String NOT_COVERED = "not covered";
         private boolean negate = false;
+        boolean completed = false;
+        boolean completable = false;
 
         public CommandLineOutputParser(boolean negate) {
             this.negate = negate;
@@ -264,5 +306,12 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
             return null;
         }
 
+        @Override
+        public void finish() {
+            if (completable) {
+                completed = true;
+                coveredClauses.notifyAll();
+            }
+        }
     }
 }

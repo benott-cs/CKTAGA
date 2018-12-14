@@ -58,7 +58,7 @@ public class AlephAccuracyScorer implements HypothesisScorerIF {
         return totalCorrect / totalExamples;
     }
 
-    private class CommandLineOutputParser implements Consumer<String> {
+    private class CommandLineOutputParser implements ConsumerWithEnd<String> {
 
         private int correctCount = 0;
         private int incorrectCount = 0;
@@ -100,6 +100,11 @@ public class AlephAccuracyScorer implements HypothesisScorerIF {
 
         public int getTotalCount() {
             return correctCount + incorrectCount;
+        }
+
+        @Override
+        public void finish() {
+
         }
     }
 }
