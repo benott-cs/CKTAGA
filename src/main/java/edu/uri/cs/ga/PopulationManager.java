@@ -177,7 +177,8 @@ public class PopulationManager {
         }
     }
 
-    private void scoreHypotheses() {
+    private boolean scoreHypotheses() {
+        boolean ret = false;
         String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
         int i = 0;
         for (Hypothesis h : hypotheses) {
@@ -185,6 +186,7 @@ public class PopulationManager {
             i++;
         }
         writeHypothesesToFiles(outputDir);
+        return ret;
     }
 
     private List<Hypothesis> getOneSetOfChildren(double totalFitness, List<Double> partialSumsForSelection) {

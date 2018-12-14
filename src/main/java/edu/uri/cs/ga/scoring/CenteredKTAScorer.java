@@ -18,6 +18,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
     private boolean weighted;
     private CommandLineOutputParser outputParser;
     private KernelHelper kernelHelper;
+    private boolean verbose = false;
 
     public CenteredKTAScorer(HypothesisFactory hypothesisFactory, KernelHelper kernelHelper, boolean weighted) {
         this.hypothesisFactory = hypothesisFactory;
@@ -48,6 +49,11 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
             hypothesisFactory.evaluateHypothesis(hypothesisOutputFile, false, outputParser);
         }
 
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         validateParser(outputParser);
 
         int size = outputParser.targets.keySet().size();
@@ -59,21 +65,27 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         return h.getScore();
     }
 
-    private double computeAccuracy(int size, double[][] targetMatrix, double[][] kernelMatrix) {
+    private synchronized double computeAccuracy(int size, double[][] targetMatrix, double[][] kernelMatrix) {
 
         computeMatrices(size, targetMatrix, kernelMatrix);
 
-        System.out.println("Matrices... before centering");
-        printMatrix(kernelMatrix, "Kernel Matrix"); printMatrix(targetMatrix, "Target Matrix");
+        if (verbose) {
+            System.out.println("Matrices... before centering");
+            printMatrix(kernelMatrix, "Kernel Matrix");
+            printMatrix(targetMatrix, "Target Matrix");
+        }
 
         center_kernel_matrix(size, kernelMatrix);
         center_kernel_matrix(size, targetMatrix);
 
-        System.out.println("Matrices... after centering");
-        printMatrix(kernelMatrix, "Kernel Matrix"); printMatrix(targetMatrix, "Target Matrix");
+        if (verbose) {
+            System.out.println("Matrices... after centering");
+            printMatrix(kernelMatrix, "Kernel Matrix");
+            printMatrix(targetMatrix, "Target Matrix");
+        }
 
         double numer = compute_frobenius_product(kernelMatrix, targetMatrix);
-        double denom = compute_frobenius_norm(kernelMatrix, kernelMatrix);
+        double denom = compute_frobenius_norm(kernelMatrix, targetMatrix);
         double res = (denom != 0.0) ? numer / denom : 0.0;
         return res;
     }
@@ -131,10 +143,14 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         }
         for (int i = 0; i < size; i++) {
             meanrow[i] /= size;
-            System.out.println("meanrow[" + i + "] is: " + meanrow[i]);
+            if (verbose) {
+                System.out.println("meanrow[" + i + "] is: " + meanrow[i]);
+            }
         }
         correction /= (size * size);
-        System.out.println("correction is: " + correction);
+        if (verbose) {
+            System.out.println("correction is: " + correction);
+        }
         for (int i = 0; i < size; i++) {
             for (int j = i; j < size; j++) {
                 // Note that meanrow[j] equals meancol[j] since the matrix is symmetric
@@ -175,7 +191,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         return kernelHelper.computeKernel(v1, v2);
     }
 
-    private void validateParser(CommandLineOutputParser outputParser) {
+    private synchronized void validateParser(CommandLineOutputParser outputParser) {
         Set<String> intersect = new HashSet<String>(outputParser.targets.keySet());
         intersect.retainAll(outputParser.coveredClauses.keySet());
         boolean ok = (outputParser.targets.size() == outputParser.coveredClauses.keySet().size()) &&
@@ -185,7 +201,9 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         }
         boolean first = true; int size = 0;
         ok = true;
-        for (ArrayList<Double> vector : outputParser.coveredClauses.values()) {
+        Iterator<ArrayList<Double>> iter = outputParser.coveredClauses.values().iterator();
+        while (iter.hasNext()) {
+            ArrayList<Double> vector = iter.next();
             if (first) {
                 size = vector.size();
                 first = false;
@@ -195,7 +213,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
             }
         }
         if (!ok) {
-            throw new IllegalStateException("Feature for vectors don't all have the same length!");
+            throw new IllegalStateException("Feature vectors don't all have the same length!");
         }
     }
 
