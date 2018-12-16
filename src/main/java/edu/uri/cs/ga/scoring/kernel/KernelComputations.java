@@ -1,4 +1,4 @@
-package edu.uri.cs.ga.kernel;
+package edu.uri.cs.ga.scoring.kernel;
 
 /**
  * Created by Ben on 12/13/18.
@@ -8,7 +8,6 @@ package edu.uri.cs.ga.kernel;
 // (powered by Fernflower decompiler)
 //
 
-import libsvm.svm_node;
 import libsvm.svm_parameter;
 
 public class KernelComputations {

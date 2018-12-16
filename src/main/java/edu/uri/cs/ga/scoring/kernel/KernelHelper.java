@@ -1,4 +1,4 @@
-package edu.uri.cs.ga.kernel;
+package edu.uri.cs.ga.scoring.kernel;
 
 import edu.uri.cs.util.PropertyManager;
 import libsvm.svm_parameter;

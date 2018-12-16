@@ -1,15 +1,12 @@
 package edu.uri.cs.ga.scoring;
 
 import edu.uri.cs.aleph.HypothesisFactory;
-import edu.uri.cs.ga.kernel.KernelHelper;
+import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.util.FileReaderUtils;
 
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by Ben on 12/11/18.
@@ -195,39 +192,39 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
 
     private void validateParser(CommandLineOutputParser outputParser, int numRetries,
                                 long retryInterval, int hypothesisSize) throws Exception {
-        int numTries = 0;
+//        int numTries = 0;
         boolean success = false;
-        Exception lastException = null;
-        while (!success && numTries < numRetries) {
-            try {
+//        Exception lastException = null;
+//        while (!success && numTries < numRetries) {
+//            try {
                 success = validateParser(outputParser, hypothesisSize);
-            } catch (IllegalStateException e) {
-                lastException = e;
-                try {
-                    Thread.sleep(retryInterval);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            }
-            numTries++;
-        }
-        if (!success) {
-            throw lastException;
-        }
+//            } catch (IllegalStateException e) {
+//                lastException = e;
+//                try {
+//                    Thread.sleep(retryInterval);
+//                } catch (InterruptedException e1) {
+//                    e1.printStackTrace();
+//                }
+//            }
+//            numTries++;
+//        }
+//        if (!success) {
+//            throw lastException;
+//        }
     }
 
     private boolean validateParser(CommandLineOutputParser outputParser, int hypothesisSize) throws IllegalStateException {
         int retryAttempt = 0;
-        while (!outputParser.completed && retryAttempt < 10) {
-            synchronized (outputParser.coveredClauses) {
-                try {
-                    outputParser.coveredClauses.wait(2l);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            retryAttempt++;
-        }
+//        while (!outputParser.completed && retryAttempt < 10) {
+//            synchronized (outputParser.coveredClauses) {
+//                try {
+//                    outputParser.coveredClauses.wait(2l);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            retryAttempt++;
+//        }
         Set<String> intersect = new HashSet<String>(outputParser.targets.keySet());
         intersect.retainAll(outputParser.coveredClauses.keySet());
         boolean ok = (outputParser.targets.size() == outputParser.coveredClauses.keySet().size()) &&
@@ -299,11 +296,6 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
                     }
                 }
             }
-        }
-
-        @Override
-        public Consumer<String> andThen(Consumer<? super String> after) {
-            return null;
         }
 
         @Override

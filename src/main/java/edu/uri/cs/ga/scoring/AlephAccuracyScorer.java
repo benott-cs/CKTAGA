@@ -89,11 +89,6 @@ public class AlephAccuracyScorer implements HypothesisScorerIF {
             }
         }
 
-        @Override
-        public Consumer<String> andThen(Consumer<? super String> after) {
-            return null;
-        }
-
         public int getCorrectCount() {
             return correctCount;
         }
