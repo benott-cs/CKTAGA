@@ -1,6 +1,7 @@
 package edu.uri.cs.util;
 
 import edu.uri.cs.ga.scoring.ConsumerWithEnd;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,6 +16,7 @@ import java.util.function.Consumer;
 /**
  * Created by Ben on 7/27/18.
  */
+@Slf4j
 public class CommandLineRunner {
 
     private PropertyManager propertyManager;
@@ -56,11 +58,13 @@ public class CommandLineRunner {
             String s;
             while ((s = stdInput.readLine()) != null) {
                 consumer.accept(s);
+                log.trace(s);
             }
 
             // read any errors from the attempted command
             while ((s = stdError.readLine()) != null) {
                 consumer.accept(s);
+                log.error(s);
             }
             int exitCode = p.waitFor();
             p.destroy();
@@ -71,23 +75,6 @@ public class CommandLineRunner {
             e.printStackTrace();
         }
     }
-
-//    private static class StreamGobbler implements Runnable {
-//        private InputStream inputStream;
-//        private ConsumerWithEnd<String> consumer;
-//
-//        public StreamGobbler(InputStream inputStream, ConsumerWithEnd<String> consumer) {
-//            this.inputStream = inputStream;
-//            this.consumer = consumer;
-//        }
-//
-//        @Override
-//        public void run() {
-//            new BufferedReader(new InputStreamReader(inputStream)).lines()
-//                    .forEach(consumer);
-//            consumer.finish();
-//        }
-//    }
 
     private class DefaultConsumerWithEnd implements ConsumerWithEnd<String> {
 

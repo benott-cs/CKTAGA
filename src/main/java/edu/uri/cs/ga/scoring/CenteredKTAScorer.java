@@ -4,13 +4,14 @@ import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.util.FileReaderUtils;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * Created by Ben on 12/11/18.
  */
+@Slf4j
 public class CenteredKTAScorer implements HypothesisScorerIF {
     private HypothesisFactory hypothesisFactory;
     private boolean weighted;
@@ -50,7 +51,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         }
 
         try {
-            validateParser(outputParser, 15, 20, hypothesisDump.size());
+            validateParser(outputParser, hypothesisDump.size());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -68,20 +69,16 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
 
         computeMatrices(size, targetMatrix, kernelMatrix);
 
-        if (verbose) {
-            System.out.println("Matrices... before centering");
-            printMatrix(kernelMatrix, "Kernel Matrix");
-            printMatrix(targetMatrix, "Target Matrix");
-        }
+        log.debug("Matrices... before centering");
+        printMatrix(kernelMatrix, "Kernel Matrix");
+        printMatrix(targetMatrix, "Target Matrix");
 
         center_kernel_matrix(size, kernelMatrix);
         center_kernel_matrix(size, targetMatrix);
 
-        if (verbose) {
-            System.out.println("Matrices... after centering");
-            printMatrix(kernelMatrix, "Kernel Matrix");
-            printMatrix(targetMatrix, "Target Matrix");
-        }
+        log.debug("Matrices... after centering");
+        printMatrix(kernelMatrix, "Kernel Matrix");
+        printMatrix(targetMatrix, "Target Matrix");
 
         double numer = compute_frobenius_product(kernelMatrix, targetMatrix);
         double denom = compute_frobenius_norm(kernelMatrix, targetMatrix);
@@ -113,12 +110,13 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
     }
 
     private void printMatrix(double[][] table, String printFirst) {
-        System.out.println(printFirst);
+        log.debug(printFirst);
         for (int r = 0; r < table.length; r++) {
+            String s = "";
             for (int c = 0; c < table[r].length; c++) {
-                System.out.print(table[r][c] + "\t");
+                s += table[r][c] + "\t";
             }
-            System.out.println();
+            log.debug(s);
         }
     }
 
@@ -142,14 +140,10 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         }
         for (int i = 0; i < size; i++) {
             meanrow[i] /= size;
-            if (verbose) {
-                System.out.println("meanrow[" + i + "] is: " + meanrow[i]);
-            }
+            log.trace("meanrow[" + i + "] is: " + meanrow[i]);
         }
         correction /= (size * size);
-        if (verbose) {
-            System.out.println("correction is: " + correction);
-        }
+        log.trace("correction is: " + correction);
         for (int i = 0; i < size; i++) {
             for (int j = i; j < size; j++) {
                 // Note that meanrow[j] equals meancol[j] since the matrix is symmetric
@@ -167,6 +161,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         double[] targetVec = new double[size];
         double[][] featureVecMatrix = new double[size][size];
         int k = 0;
+        log.debug("Key set is: " + outputParser.targets.keySet());
         for (String key : outputParser.targets.keySet()) {
             targetVec[k] = outputParser.targets.get(key);
             featureVecMatrix[k] = outputParser.coveredClauses.get(key).
@@ -190,41 +185,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         return kernelHelper.computeKernel(v1, v2);
     }
 
-    private void validateParser(CommandLineOutputParser outputParser, int numRetries,
-                                long retryInterval, int hypothesisSize) throws Exception {
-//        int numTries = 0;
-        boolean success = false;
-//        Exception lastException = null;
-//        while (!success && numTries < numRetries) {
-//            try {
-                success = validateParser(outputParser, hypothesisSize);
-//            } catch (IllegalStateException e) {
-//                lastException = e;
-//                try {
-//                    Thread.sleep(retryInterval);
-//                } catch (InterruptedException e1) {
-//                    e1.printStackTrace();
-//                }
-//            }
-//            numTries++;
-//        }
-//        if (!success) {
-//            throw lastException;
-//        }
-    }
-
     private boolean validateParser(CommandLineOutputParser outputParser, int hypothesisSize) throws IllegalStateException {
-        int retryAttempt = 0;
-//        while (!outputParser.completed && retryAttempt < 10) {
-//            synchronized (outputParser.coveredClauses) {
-//                try {
-//                    outputParser.coveredClauses.wait(2l);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            retryAttempt++;
-//        }
         Set<String> intersect = new HashSet<String>(outputParser.targets.keySet());
         intersect.retainAll(outputParser.coveredClauses.keySet());
         boolean ok = (outputParser.targets.size() == outputParser.coveredClauses.keySet().size()) &&
