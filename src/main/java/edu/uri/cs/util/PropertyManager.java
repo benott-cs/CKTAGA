@@ -78,4 +78,8 @@ public class PropertyManager {
     public double getPropAsDouble(String propertyName) {
         return Double.valueOf(getProperty(propertyName));
     }
+
+    public boolean getPropAsBoolean(String propertyName) {
+        return Boolean.parseBoolean(propertyName.toLowerCase());
+    }
 }
