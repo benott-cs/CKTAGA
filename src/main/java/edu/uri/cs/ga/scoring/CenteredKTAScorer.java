@@ -27,6 +27,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
 
     @Override
     public double computeScore(Hypothesis h, int hypothesisNumber, String outputDir) {
+        h.getHypothesisDump().forEach(log::debug);
         // 1 - write or tree to file "hypothesis_gen<x>_member<y>.pl"
         //     - write each highest level AndTree in the OrTree(s) as its (their) own clause
         List<String> hypothesisDump = h.getHypothesisDump();
