@@ -48,6 +48,7 @@ public class PopulationManager {
     private MutationHandler mutationHandler;
     private static int currentGeneration = 0;
     private Map<Integer, ScoresAndTotal> relScores = new HashMap<>();
+    private boolean diversityBoost = false;
 
     public PopulationManager(String backgroundFile, PropertyManager propertyManager) {
         this.backgroundFile = backgroundFile;
@@ -67,6 +68,7 @@ public class PopulationManager {
                 negativeExamples);
         numberOfGenerations = propertyManager.getPropAsInt(PropertyManager.CRKTAGA_NUMBER_OF_GENERATIONS);
         hypothesisOutputDirectory = propertyManager.getProperty(PropertyManager.CRKTAGA_HYPOTHESES_OUTPUT_DIRECTORY);
+        diversityBoost = propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_DIVERSITY_BOOST);
         File directory = new File(hypothesisOutputDirectory);
         if (!directory.exists()) {
             directory.mkdirs();
@@ -189,9 +191,18 @@ public class PopulationManager {
     }
 
     private List<Hypothesis> getOneSetOfChildren(double totalFitness, List<Double> partialSumsForSelection) {
+        ScoresAndTotal defScoresAndTotal = new ScoresAndTotal();
+        defScoresAndTotal.totalFitness = totalFitness;
+        defScoresAndTotal.partialSumsForSelection = partialSumsForSelection;
+        ScoresAndTotal scoresAndTotal = defScoresAndTotal;
         int index1 = Utils.getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
         Hypothesis parent1 = hypotheses.get(index1);
-        ScoresAndTotal scoresAndTotal = getRelScores(index1);
+        if (diversityBoost) {
+            ScoresAndTotal tmp = getRelScores(index1);
+            if (Objects.nonNull(tmp)) {
+                scoresAndTotal = tmp;
+            }
+        }
         log.debug("Relative scores for index {} are: {}", index1,
                 scoresAndTotal.partialSumsForSelection);
         // bias towards "different" solutions

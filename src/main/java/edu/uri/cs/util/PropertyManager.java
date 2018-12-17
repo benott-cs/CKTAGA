@@ -21,6 +21,7 @@ public class PropertyManager {
     public static final String CRKTAGA_CROSSOVER_PARAM_P2 = "crktaga.crossover.params.p2";
     public static final String CRKTAGA_CROSSOVER_PARAM_P3 = "crktaga.crossover.params.p3";
 
+    public static final String CRKTAGA_DIVERSITY_BOOST = "crktaga.diversity.boost";
     public static final String CRKTAGA_MUTATION_PROB = "crktaga.mutation.prob";
     public static final String CRKTAGA_MUTATION_DOWNWARD_REFINEMENT_PROB = "crktaga.mutation.downward.refinement.prob";
     public static final String CRKTAGA_MUTATION_IGNORE_PATTERN = "crktaga.mutation.ignore.pattern";
@@ -80,6 +81,6 @@ public class PropertyManager {
     }
 
     public boolean getPropAsBoolean(String propertyName) {
-        return Boolean.parseBoolean(propertyName.toLowerCase());
+        return Boolean.parseBoolean(getProperty(propertyName).toLowerCase());
     }
 }
