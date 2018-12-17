@@ -23,6 +23,8 @@ public class Hypothesis {
     private HashMap<PrologStructure, OrTree> hypothesis;
     private double score = 0.0;
     private boolean isElite = false;
+    private double [][] centeredKernelMatrix;
+    private Set<String> examples;
     @JsonIgnore
     private Random random = new Random();
     @JsonIgnore
@@ -291,6 +293,22 @@ public class Hypothesis {
         return hypothesisDump;
     }
 
+    public double[][] getCenteredKernelMatrix() {
+        return centeredKernelMatrix;
+    }
+
+    public void setCenteredKernelMatrix(double[][] centeredKernelMatrix) {
+        this.centeredKernelMatrix = centeredKernelMatrix;
+    }
+
+    public Set<String> getExamples() {
+        return examples;
+    }
+
+    public void setExamples(Set<String> examples) {
+        this.examples = examples;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -299,14 +317,20 @@ public class Hypothesis {
         Hypothesis that = (Hypothesis) o;
 
         if (Double.compare(that.getScore(), getScore()) != 0) return false;
-        if (isElite != that.isElite) return false;
+        if (isElite() != that.isElite()) return false;
         if (backgroundLanguage != null ? !backgroundLanguage.equals(that.backgroundLanguage) : that.backgroundLanguage != null)
             return false;
         if (hypothesisFile != null ? !hypothesisFile.equals(that.hypothesisFile) : that.hypothesisFile != null)
             return false;
-        if (hypothesisLanguage != null ? !hypothesisLanguage.equals(that.hypothesisLanguage) : that.hypothesisLanguage != null)
+        if (getHypothesisLanguage() != null ? !getHypothesisLanguage().equals(that.getHypothesisLanguage()) : that.getHypothesisLanguage() != null)
             return false;
-        return hypothesis != null ? hypothesis.equals(that.hypothesis) : that.hypothesis == null;
+        if (getHypothesis() != null ? !getHypothesis().equals(that.getHypothesis()) : that.getHypothesis() != null)
+            return false;
+        if (!Arrays.deepEquals(getCenteredKernelMatrix(), that.getCenteredKernelMatrix())) return false;
+        if (getExamples() != null ? !getExamples().equals(that.getExamples()) : that.getExamples() != null)
+            return false;
+        if (random != null ? !random.equals(that.random) : that.random != null) return false;
+        return cloner != null ? cloner.equals(that.cloner) : that.cloner == null;
     }
 
     @Override
@@ -315,11 +339,15 @@ public class Hypothesis {
         long temp;
         result = backgroundLanguage != null ? backgroundLanguage.hashCode() : 0;
         result = 31 * result + (hypothesisFile != null ? hypothesisFile.hashCode() : 0);
-        result = 31 * result + (hypothesisLanguage != null ? hypothesisLanguage.hashCode() : 0);
-        result = 31 * result + (hypothesis != null ? hypothesis.hashCode() : 0);
+        result = 31 * result + (getHypothesisLanguage() != null ? getHypothesisLanguage().hashCode() : 0);
+        result = 31 * result + (getHypothesis() != null ? getHypothesis().hashCode() : 0);
         temp = Double.doubleToLongBits(getScore());
         result = 31 * result + (int) (temp ^ (temp >>> 32));
-        result = 31 * result + (isElite ? 1 : 0);
+        result = 31 * result + (isElite() ? 1 : 0);
+        result = 31 * result + Arrays.deepHashCode(getCenteredKernelMatrix());
+        result = 31 * result + (getExamples() != null ? getExamples().hashCode() : 0);
+        result = 31 * result + (random != null ? random.hashCode() : 0);
+        result = 31 * result + (cloner != null ? cloner.hashCode() : 0);
         return result;
     }
 }

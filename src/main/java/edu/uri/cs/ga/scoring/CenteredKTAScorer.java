@@ -62,6 +62,8 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
 
         // Compute the totals and return
         h.setScore(computeAccuracy(size, targetMatrix, kernelMatrix));
+        h.setCenteredKernelMatrix(kernelMatrix);
+        h.setExamples(outputParser.coveredClauses.keySet());
         return h.getScore();
     }
 
@@ -80,9 +82,21 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
         printMatrix(kernelMatrix, "Kernel Matrix");
         printMatrix(targetMatrix, "Target Matrix");
 
-        double numer = compute_frobenius_product(kernelMatrix, targetMatrix);
-        double denom = compute_frobenius_norm(kernelMatrix, targetMatrix);
+        return computerCKTABetween2CenteredMatrices(kernelMatrix, targetMatrix);
+    }
+
+    public synchronized double computerCKTABetween2CenteredMatrices(double [][] m1, double [][] m2) {
+        if (m1.length != m2.length || m1.length == 0 || m2.length == 0 || m1[0].length != m2[0].length ||
+                m1.length != m1[0].length || m2.length != m2[0].length) {
+            log.debug("Invalid matrices provided for CKTA score");
+            log.debug("m1 is: {}", m1);
+            log.debug("m2 is: {}", m2);
+            throw new IllegalArgumentException("Matrices did not have correct lengths!");
+        }
+        double numer = compute_frobenius_product(m1, m2);
+        double denom = compute_frobenius_norm(m1, m2);
         double res = (denom != 0.0) ? numer / denom : 0.0;
+        log.debug("CKTA is: {}", res);
         return res;
     }
 

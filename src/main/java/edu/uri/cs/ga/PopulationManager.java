@@ -17,17 +17,16 @@ import edu.uri.cs.tree.AndTree;
 import edu.uri.cs.tree.OrTree;
 import edu.uri.cs.util.FileReaderUtils;
 import edu.uri.cs.util.PropertyManager;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 /**
  * Created by Ben on 7/26/18.
  */
+@Slf4j
 public class PopulationManager {
 
     private String backgroundFile = null;
@@ -48,6 +47,7 @@ public class PopulationManager {
     private Random rand = new Random();
     private MutationHandler mutationHandler;
     private static int currentGeneration = 0;
+    private Map<Integer, ScoresAndTotal> relScores = new HashMap<>();
 
     public PopulationManager(String backgroundFile, PropertyManager propertyManager) {
         this.backgroundFile = backgroundFile;
@@ -114,6 +114,7 @@ public class PopulationManager {
         }
         printBestHypothesis("BEGIN");
         for (int i = 1; i < numberOfGenerations; i++) {
+            relScores.clear();
             currentGeneration = i;
             List<Hypothesis> nextGenHypotheses = new ArrayList<>();
             hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
@@ -189,16 +190,66 @@ public class PopulationManager {
 
     private List<Hypothesis> getOneSetOfChildren(double totalFitness, List<Double> partialSumsForSelection) {
         int index1 = Utils.getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
-        int index2 = Utils.getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);;
+        Hypothesis parent1 = hypotheses.get(index1);
+        ScoresAndTotal scoresAndTotal = getRelScores(index1);
+        log.debug("Relative scores for index {} are: {}", index1,
+                scoresAndTotal.partialSumsForSelection);
+        // bias towards "different" solutions
+        int index2 = Utils.getIndexOfLeastExceedingNumber(Math.random() * scoresAndTotal.totalFitness,
+                scoresAndTotal.partialSumsForSelection);
         // make sure we have two different parents
         while (index2 == index1) {
-            index2 = Utils.getIndexOfLeastExceedingNumber(Math.random() * totalFitness, partialSumsForSelection);
+            index2 = Utils.getIndexOfLeastExceedingNumber(Math.random() * scoresAndTotal.totalFitness,
+                    scoresAndTotal.partialSumsForSelection);
         }
-        Hypothesis parent1 = hypotheses.get(index1);
         Hypothesis parent2 = hypotheses.get(index2);
         List<Hypothesis> children = performCrossover(parent1, parent2);
         mutateChildren(children);
         return children;
+    }
+
+    private class ScoresAndTotal {
+        public double totalFitness = 0.0;
+        public List<Double> partialSumsForSelection = new ArrayList<>();
+    }
+
+    private ScoresAndTotal getRelScores(int excludedIndex) {
+        if (relScores.containsKey(excludedIndex)) {
+            return relScores.get(excludedIndex);
+        }
+        ScoresAndTotal scoresAndTotal = null;
+        CenteredKTAScorer centeredKTAScorer = null;
+        if (hypothesisScorerIF instanceof CenteredKTAScorer) {
+            centeredKTAScorer = (CenteredKTAScorer)hypothesisScorerIF;
+        }
+        if (centeredKTAScorer != null) {
+            scoresAndTotal = new ScoresAndTotal();
+            Hypothesis excluded = hypotheses.get(excludedIndex);
+            for (int i = 0; i < hypotheses.size(); i++) {
+                if (i != excludedIndex) {
+                    Hypothesis h = hypotheses.get(i);
+                    Set<String> intersect = new HashSet<>(excluded.getExamples());
+                    intersect.retainAll(h.getExamples());
+                    boolean ok = (h.getExamples().size() == intersect.size());
+                    if (ok) {
+                        double alignmentBetweenHypotheses =
+                                centeredKTAScorer.
+                                        computerCKTABetween2CenteredMatrices(excluded.getCenteredKernelMatrix(),
+                                                h.getCenteredKernelMatrix());
+                        double adjustedScore = h.getScore() / alignmentBetweenHypotheses;
+                        scoresAndTotal.totalFitness += adjustedScore;
+                    } else {
+                        throw new IllegalStateException("hypotheses had different example sets!");
+                    }
+                    scoresAndTotal.partialSumsForSelection.add(scoresAndTotal.totalFitness);
+                } else {
+                    scoresAndTotal.totalFitness += 1.0;
+                    scoresAndTotal.partialSumsForSelection.add(scoresAndTotal.totalFitness);
+                }
+            }
+            relScores.put(excludedIndex, scoresAndTotal);
+        }
+        return scoresAndTotal;
     }
 
     private void mutateChildren(List<Hypothesis> children) {
