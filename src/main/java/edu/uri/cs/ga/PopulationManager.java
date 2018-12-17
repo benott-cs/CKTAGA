@@ -7,9 +7,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
-import edu.uri.cs.ga.scoring.kernel.KernelHelper;
+import edu.uri.cs.ga.scoring.AlephAccuracyScorer;
 import edu.uri.cs.ga.scoring.CenteredKTAScorer;
+import edu.uri.cs.ga.scoring.HybridScorer;
 import edu.uri.cs.ga.scoring.HypothesisScorerIF;
+import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
+import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.parse.PrologLanguageParser;
@@ -55,7 +58,8 @@ public class PopulationManager {
         this.propertyManager = propertyManager;
         hypothesisFactory = new HypothesisFactory(propertyManager);
         KernelHelper kernelHelper = new KernelHelper(propertyManager);
-        hypothesisScorerIF = new CenteredKTAScorer(hypothesisFactory, kernelHelper,false);
+//        hypothesisScorerIF = new CenteredKTAScorer(hypothesisFactory, kernelHelper,false);
+        hypothesisScorerIF = new HybridScorer(hypothesisFactory, kernelHelper,false);
 //        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
 //        hypothesisScorerIF = new RandomScorer();
         mutationHandler = new MutationHandler(propertyManager);
@@ -141,6 +145,10 @@ public class PopulationManager {
             scoreHypotheses();
         }
         printBestHypothesis("END");
+        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
+        String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
+        double accuracy = hypothesisScorerIF.computeScore(hypotheses.get(0), hypotheses.size() + 100, outputDir);
+        log.debug("Accuracy of best aligned solution is {}", accuracy);
     }
 
     private void printBestHypothesis(String notes) {
@@ -229,9 +237,9 @@ public class PopulationManager {
             return relScores.get(excludedIndex);
         }
         ScoresAndTotal scoresAndTotal = null;
-        CenteredKTAScorer centeredKTAScorer = null;
+        KTACalculatorIF centeredKTAScorer = null;
         if (hypothesisScorerIF instanceof CenteredKTAScorer) {
-            centeredKTAScorer = (CenteredKTAScorer)hypothesisScorerIF;
+            centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
         }
         if (centeredKTAScorer != null) {
             scoresAndTotal = new ScoresAndTotal();

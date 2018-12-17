@@ -34,6 +34,10 @@ public class FileReaderUtils {
     public static void writeFile(String fileName, List<String> data, boolean executable) {
         FileWriter output = null;
         BufferedWriter writeFile = null;
+        File directory = new File(getParentDirectoryNameFromFilename(fileName));
+        if (!directory.exists()) {
+            directory.mkdir();
+        }
         try {
             output = new FileWriter(fileName);
             writeFile = new BufferedWriter(output);

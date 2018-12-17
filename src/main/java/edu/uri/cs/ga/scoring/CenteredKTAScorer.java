@@ -1,6 +1,7 @@
 package edu.uri.cs.ga.scoring;
 
 import edu.uri.cs.aleph.HypothesisFactory;
+import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.util.FileReaderUtils;
@@ -12,7 +13,7 @@ import java.util.*;
  * Created by Ben on 12/11/18.
  */
 @Slf4j
-public class CenteredKTAScorer implements HypothesisScorerIF {
+public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
     private HypothesisFactory hypothesisFactory;
     private boolean weighted;
     private CommandLineOutputParser outputParser;
@@ -49,6 +50,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
             outputParser.setNegate(true);
             outputParser.completable = true;
             hypothesisFactory.evaluateHypothesis(hypothesisOutputFile, false, outputParser);
+            i++;
         }
 
         try {
@@ -260,7 +262,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF {
                 }
                 if (s.contains(NOT_COVERED)) {
                     if (negate) {
-                        coveredClauses.get(key).add(1.0);
+                        coveredClauses.get(key).add(-1.0);
                     } else {
                         coveredClauses.get(key).add(0.0);
                     }
