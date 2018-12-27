@@ -1,5 +1,7 @@
 package edu.uri.cs.util;
 
+import edu.uri.cs.ga.scoring.ScoringType;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -44,6 +46,8 @@ public class PropertyManager {
     public static final String YAP_LOCATION = "yap.location";
     public static final String PERL_LOCATION = "perl.location";
 
+    public static final String SCORING_TYPE = "crktaga.scoring.type";
+
     public static final String KERNEL_TYPE = "crktaga.kernel.parameter.type";
     public static final String KERNEL_DEGREE = "crktaga.kernel.parameter.degree";
     public static final String KERNEL_COEFFICIENT = "crktaga.kernel.parameter.coef0";
@@ -82,5 +86,9 @@ public class PropertyManager {
 
     public boolean getPropAsBoolean(String propertyName) {
         return Boolean.parseBoolean(getProperty(propertyName).toLowerCase());
+    }
+
+    public ScoringType getScoringType() {
+        return ScoringType.from(Integer.valueOf(getProperty(SCORING_TYPE)));
     }
 }

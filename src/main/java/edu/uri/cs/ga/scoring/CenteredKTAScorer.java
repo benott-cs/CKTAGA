@@ -55,7 +55,6 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             // 3 - evaluate negative and parse output
             outputParser.setNegate(true);
             outputParser.completed = false;
-            outputParser.completable = true;
             hypothesisFactory.evaluateHypothesis(hypothesisOutputFile, false, outputParser);
             i++;
         }
@@ -102,7 +101,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
         return computerCKTABetween2CenteredMatrices(kernelMatrix, targetMatrix);
     }
 
-    public synchronized double computerCKTABetween2CenteredMatrices(double [][] m1, double [][] m2) {
+    public synchronized double computerCKTABetween2CenteredMatrices(double[][] m1, double[][] m2) {
         if (m1.length != m2.length || m1.length == 0 || m2.length == 0 || m1[0].length != m2[0].length ||
                 m1.length != m1[0].length || m2.length != m2[0].length) {
             log.debug("Invalid matrices provided for CKTA score");
@@ -246,6 +245,11 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
         return true;
     }
 
+
+    private static double POSITIVE_TARGET = 1.0;
+    private static double NEGATIVE_TARGET = -1.0;
+    private static double COVERED = 1.0;
+    private static double UNCOVERED = 0.0;
     private class CommandLineOutputParser implements ConsumerWithEnd<String> {
 
         TreeMap<String, ArrayList<Double>> coveredClauses = new TreeMap<>();
@@ -253,9 +257,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
         private static final String COVERED_STRING = "covered]";
         private static final String NOT_COVERED = "not covered";
         private boolean negate = false;
-        boolean updated = false;
         boolean completed = false;
-        boolean completable = false;
 
         public CommandLineOutputParser(boolean negate) {
             this.negate = negate;
@@ -273,19 +275,22 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
                     coveredClauses.put(key, new ArrayList<>());
                 }
                 if (!targets.containsKey(key)) {
-                    targets.put(key, negate ? -1.0 : 1.0);
+                    targets.put(key, negate ? NEGATIVE_TARGET : POSITIVE_TARGET);
                 }
+                // These are broken out by negate in case we want to handle
+                // positive and negative samples differently in the future.
+                // If negate is true, we are handling negative examples.
                 if (s.contains(NOT_COVERED)) {
                     if (negate) {
-                        coveredClauses.get(key).add(-1.0);
+                        coveredClauses.get(key).add(UNCOVERED);
                     } else {
-                        coveredClauses.get(key).add(0.0);
+                        coveredClauses.get(key).add(UNCOVERED);
                     }
                 } else {
                     if (negate) {
-                        coveredClauses.get(key).add(0.0);
+                        coveredClauses.get(key).add(COVERED);
                     } else {
-                        coveredClauses.get(key).add(1.0);
+                        coveredClauses.get(key).add(COVERED);
                     }
                 }
             }
@@ -293,10 +298,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
 
         @Override
         public void finish() {
-//            if (completable) {
-                completed = true;
-//                coveredClauses.notifyAll();
-//            }
+            completed = true;
         }
     }
 }

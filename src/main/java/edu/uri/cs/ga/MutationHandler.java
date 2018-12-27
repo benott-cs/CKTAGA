@@ -96,8 +96,8 @@ public class MutationHandler {
                 }
                 case VARIABLE: {
                     List<AndTree> andTrees = h.getListOfClausesWithAtLeastTwoUniqueVariables();
-                    AndTree refineThis = andTrees.get(ThreadLocalRandom.current().nextInt(andTrees.size()));
                     if (andTrees.size() > 0) {
+                        AndTree refineThis = andTrees.get(ThreadLocalRandom.current().nextInt(andTrees.size()));
                         ClauseContainingType variable1 = h.getRandomVariableFromClause(refineThis);
                         ClauseContainingType variable2 = h.getRandomVariableFromClause(refineThis);
                         while (variable1.getAbstractPrologTerm().equals(variable2.getAbstractPrologTerm())) {

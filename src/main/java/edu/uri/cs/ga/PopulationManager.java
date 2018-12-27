@@ -7,10 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
-import edu.uri.cs.ga.scoring.AlephAccuracyScorer;
-import edu.uri.cs.ga.scoring.CenteredKTAScorer;
-import edu.uri.cs.ga.scoring.HybridScorer;
-import edu.uri.cs.ga.scoring.HypothesisScorerIF;
+import edu.uri.cs.ga.scoring.*;
 import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
@@ -51,6 +48,7 @@ public class PopulationManager {
     private MutationHandler mutationHandler;
     private static int currentGeneration = 0;
     private Map<Integer, ScoresAndTotal> relScores = new HashMap<>();
+    private HypothesisScorerFactory hypothesisScorerFactory = new HypothesisScorerFactory();
     private boolean diversityBoost = false;
 
     public PopulationManager(String backgroundFile, PropertyManager propertyManager) {
@@ -58,10 +56,8 @@ public class PopulationManager {
         this.propertyManager = propertyManager;
         hypothesisFactory = new HypothesisFactory(propertyManager);
         KernelHelper kernelHelper = new KernelHelper(propertyManager);
-        hypothesisScorerIF = new CenteredKTAScorer(hypothesisFactory, kernelHelper,false);
-//        hypothesisScorerIF = new HybridScorer(hypothesisFactory, kernelHelper,false);
-//        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
-//        hypothesisScorerIF = new RandomScorer();
+        hypothesisScorerIF = hypothesisScorerFactory.getHypothesisScorer(hypothesisFactory, kernelHelper,false,
+                propertyManager.getScoringType());
         mutationHandler = new MutationHandler(propertyManager);
     }
 
@@ -316,6 +312,12 @@ public class PopulationManager {
                 AndTree andTree2 = child2.getValueForMthStructure(child2.getRandomRule()).getRandomChildExpression();
                 if (Objects.isNull(andTree1) || Objects.isNull(andTree2)) {
                     throw new IllegalStateException("Received null and tree(s)");
+                }
+                if (andTree1.getTreeSize() == 0) {
+                    andTree1.generateTree();
+                }
+                if (andTree2.getTreeSize() == 0) {
+                    andTree2.generateTree();
                 }
                 List<PrologStructure> rule1NthNode = andTree1.getNthNode(rand.nextInt(andTree1.getTreeSize()));
                 List<PrologStructure> rule2NthNode = andTree2.getNthNode(rand.nextInt(andTree2.getTreeSize()));

@@ -29,7 +29,7 @@ public class EnumeratedTree<T extends Object> {
     public EnumeratedTree(List<T> objects) {
         setGenericType();
         this.childExpressions = objects;
-        initialize();
+        generateTree();
     }
 
     public EnumeratedTree() {
@@ -96,7 +96,7 @@ public class EnumeratedTree<T extends Object> {
         for (T item : items) {
             tree.addIterm((AndTree)item);
         }
-        tree.initialize();
+        tree.generateTree();
         return tree;
     }
 
@@ -105,7 +105,7 @@ public class EnumeratedTree<T extends Object> {
         for (T item : items) {
             tree.addIterm((PrologStructure) item);
         }
-        tree.initialize();
+        tree.generateTree();
         return tree;
     }
 
