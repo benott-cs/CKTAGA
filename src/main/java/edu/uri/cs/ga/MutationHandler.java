@@ -174,10 +174,12 @@ public class MutationHandler {
                 case LITERAL_REMOVAL:
                     // Get an and tree
                     AndTree andTree = h.getValueForMthStructure(h.getRandomRule()).getRandomChildExpression();
-                    PrologStructure literalToRemove = andTree.getRandomChildExpression();
-                    andTree.removeTreeItem(literalToRemove);
-                    andTree.generateTree();
-                    success = true;
+                    if (andTree.getAllChildExpressions().size() > 0) {
+                        PrologStructure literalToRemove = andTree.getRandomChildExpression();
+                        andTree.removeTreeItem(literalToRemove);
+                        andTree.generateTree();
+                        success = true;
+                    }
                     break;
                 default:
                     break;

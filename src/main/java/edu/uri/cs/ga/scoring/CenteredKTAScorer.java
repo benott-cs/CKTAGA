@@ -101,6 +101,8 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
         return computerCKTABetween2CenteredMatrices(kernelMatrix, targetMatrix);
     }
 
+    private static final double ZERO_EPSILON = 0.000001;
+
     public synchronized double computerCKTABetween2CenteredMatrices(double[][] m1, double[][] m2) {
         if (m1.length != m2.length || m1.length == 0 || m2.length == 0 || m1[0].length != m2[0].length ||
                 m1.length != m1[0].length || m2.length != m2[0].length) {
@@ -111,7 +113,14 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
         }
         double numer = compute_frobenius_product(m1, m2);
         double denom = compute_frobenius_norm(m1, m2);
-        double res = (denom != 0.0) ? numer / denom : 0.0;
+        double res;
+        if (denom <= ZERO_EPSILON) {
+            res = numer / ZERO_EPSILON;
+        } else {
+            res = numer / denom;
+        }
+        // if the numerator was zero, return the zero epsilon value
+        res = (res == 0.0) ? ZERO_EPSILON : res;
         log.debug("CKTA is: {}", res);
         return res;
     }

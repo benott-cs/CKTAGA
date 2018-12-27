@@ -236,6 +236,8 @@ public class PopulationManager {
         KTACalculatorIF centeredKTAScorer = null;
         if (hypothesisScorerIF instanceof CenteredKTAScorer) {
             centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
+        } else if (hypothesisScorerIF instanceof HybridScorer) {
+            centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
         }
         if (centeredKTAScorer != null) {
             scoresAndTotal = new ScoresAndTotal();
