@@ -21,13 +21,16 @@ public class HypothesisScorerFactory {
                 ret = new RandomScorer();
                 break;
             case ACCURACY:
-                ret = new AlephAccuracyScorer(hypothesisFactory, false);
+                ret = new AlephAccuracyScorer(hypothesisFactory, weighted);
                 break;
             case CENTERED_KTA:
-                ret = new CenteredKTAScorer(hypothesisFactory, kernelHelper,false);
+                ret = new CenteredKTAScorer(hypothesisFactory, kernelHelper,weighted);
                 break;
             case ACCUR_TIMES_CKTA:
-                ret = new HybridScorer(hypothesisFactory, kernelHelper,false);
+                ret = new HybridScorer(hypothesisFactory, kernelHelper,weighted);
+                break;
+            case CENTERED_KTA_LOG_ACCURACY:
+                ret = new CenteredKTAAndLogAccuracy(hypothesisFactory, kernelHelper, weighted);
                 break;
         }
         return ret;

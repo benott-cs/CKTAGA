@@ -12,7 +12,8 @@ public enum ScoringType {
     RANDOM(0),
     ACCURACY(1),
     CENTERED_KTA(2),
-    ACCUR_TIMES_CKTA(3);
+    ACCUR_TIMES_CKTA(3),
+    CENTERED_KTA_LOG_ACCURACY(4);
 
     private final int value;
 
