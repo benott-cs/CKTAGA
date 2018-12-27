@@ -83,7 +83,7 @@ public class HypothesisFactory {
         strings.add(COMMAND_TOKEN + "['" + hypothesisFileToEvaluate + "'].");
         strings.add(COMMAND_TOKEN + "test('" +
                 (testPositive ? positiveExamplesFile : negativeExamplesFile) +
-                "', show, cov, tot).");
+                "', show, Cov, Tot).");
     }
 
     private String getBackgroundDataRootDir(String backgroundDataFileName) {

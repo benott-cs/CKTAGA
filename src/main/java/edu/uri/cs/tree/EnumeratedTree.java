@@ -66,7 +66,16 @@ public class EnumeratedTree<T extends Object> {
 
     @JsonIgnore
     public T getRandomChildExpression() {
-        return childExpressions.get(ThreadLocalRandom.current().nextInt(childExpressions.size()));
+        if (childExpressions.size() > 0) {
+            return childExpressions.get(ThreadLocalRandom.current().nextInt(childExpressions.size()));
+        } else {
+            try {
+                return typeOfT.newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     public List<T> getAllChildExpressions() {

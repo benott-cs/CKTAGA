@@ -30,6 +30,10 @@ public class Hypothesis {
     @JsonIgnore
     private Cloner cloner = new Cloner();
 
+    public Hypothesis() {
+
+    }
+
     public Hypothesis(Language backgroundLanguage, String hypothesisFile) {
         this.backgroundLanguage = backgroundLanguage;
         this.hypothesisFile = hypothesisFile;
@@ -141,19 +145,19 @@ public class Hypothesis {
     }
 
     public ClauseContainingType getClauseWithRandomVariable() {
-        List<ClauseContainingType> allVariables = collectVariablesInHypothesis(null, PrologVariable.class);
+        List<ClauseContainingType> allVariables = collectVariablesInHypothesis(null, false, PrologVariable.class);
         return getRandomClauseContainingTypeFromList(allVariables);
     }
 
     public ClauseContainingType getRandomVariableFromClause(AndTree andTree) {
-        List<ClauseContainingType> allVariables = collectVariablesInHypothesis(andTree, PrologVariable.class);
+        List<ClauseContainingType> allVariables = collectVariablesInHypothesis(andTree, false, PrologVariable.class);
         return getRandomClauseContainingTypeFromList(allVariables);
     }
 
     public ClauseContainingType getClauseWithRandomConstant() {
-        List<ClauseContainingType> allConstants = collectVariablesInHypothesis(null, AlephStringConstant.class);
-        allConstants.addAll(collectVariablesInHypothesis(null, PrologFloatNumber.class));
-        allConstants.addAll(collectVariablesInHypothesis(null, PrologIntegerNumber.class));
+        List<ClauseContainingType> allConstants = collectVariablesInHypothesis(null, false, AlephStringConstant.class);
+        allConstants.addAll(collectVariablesInHypothesis(null, false, PrologFloatNumber.class));
+        allConstants.addAll(collectVariablesInHypothesis(null, false, PrologIntegerNumber.class));
         return getRandomClauseContainingTypeFromList(allConstants);
     }
 
@@ -166,7 +170,7 @@ public class Hypothesis {
     }
 
     public List<AndTree> getListOfClausesWithAtLeastTwoUniqueVariables() {
-        List<ClauseContainingType> variables = collectVariablesInHypothesis(null, PrologVariable.class);
+        List<ClauseContainingType> variables = collectVariablesInHypothesis(null, false, PrologVariable.class);
         Map<AndTree, Integer> counts = new HashMap<>();
         for (ClauseContainingType clauseContainingType : variables) {
             if (!counts.containsKey(clauseContainingType.getClause())) {
@@ -232,7 +236,7 @@ public class Hypothesis {
     }
 
     public <T extends AbstractPrologTerm> List<ClauseContainingType> collectVariablesInHypothesis(
-            AndTree filterToThisClause, Class<T> cls) {
+            AndTree filterToThisClause, boolean negateFilter, Class<T> cls) {
         List<ClauseContainingType> allVariables = new ArrayList<>();
         for (PrologStructure p : hypothesis.keySet()) {
             List<T> variablesInHead = new ArrayList<>();
@@ -242,7 +246,8 @@ public class Hypothesis {
                 }
             }
             for (AndTree a : hypothesis.get(p).getAllChildExpressions()) {
-                if (Objects.isNull(filterToThisClause) || a.equals(filterToThisClause)) {
+                if (Objects.isNull(filterToThisClause) ||
+                        (negateFilter ? !a.equals(filterToThisClause) : a.equals(filterToThisClause))) {
                     for (PrologStructure prologStructure : a.getAllChildExpressions()) {
                         for (int i = 0; i < prologStructure.getArity(); i++) {
                             AbstractPrologTerm abstractPrologTerm = prologStructure.getElement(i);
@@ -257,6 +262,44 @@ public class Hypothesis {
                                     allVariables.add(clauseContainingType);
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+        return allVariables;
+    }
+
+    // This will either return all variables in the filterToThisLiteral (if negateFilter is false)
+    // or it will return all variables in the clause which are not in the filterToThisLiteral.
+    public <T extends AbstractPrologTerm> List<LiteralContainingType> collectVariablesInClause(
+            PrologStructure head, AndTree theClause, PrologStructure filterToThisLiteral,
+            boolean negateFilter, Class<T> cls) {
+        List<LiteralContainingType> allVariables = new ArrayList<>();
+        for (int i = 0; i < head.getArity(); i++) {
+            // only in the negate filter case - the filter literal is a literal in the body of the clause;
+            // if the user wants to strictly retrieve variables in that literal, then we will not add the head
+            // variables
+            if (cls.isInstance(head.getElement(i)) && negateFilter) {
+                LiteralContainingType literalContainingType =
+                        new LiteralContainingType(cls, head, head.getElement(i));
+                if (!allVariables.contains(literalContainingType)) {
+                    allVariables.add(literalContainingType);
+                }
+            }
+        }
+
+        for (PrologStructure prologStructure : theClause.getAllChildExpressions()) {
+            if (Objects.isNull(filterToThisLiteral) ||
+                    (negateFilter ? !prologStructure.equals(filterToThisLiteral) : prologStructure.equals(filterToThisLiteral))) {
+                for (int i = 0; i < prologStructure.getArity(); i++) {
+                    AbstractPrologTerm abstractPrologTerm = prologStructure.getElement(i);
+                    if (cls.isInstance(abstractPrologTerm)) {
+                        T variable = (T) abstractPrologTerm;
+                        LiteralContainingType literalContainingType =
+                                new LiteralContainingType(cls, prologStructure, abstractPrologTerm);
+                        if (!allVariables.contains(literalContainingType)) {
+                            allVariables.add(literalContainingType);
                         }
                     }
                 }
@@ -283,15 +326,57 @@ public class Hypothesis {
             OrTree conceptDescription = hypothesis.get(head);
             for (AndTree clause : conceptDescription.getAllChildExpressions()) {
                 String clauseString = "";
+
                 for (PrologStructure prologStructure : clause.getAllChildExpressions()) {
-                    clauseString += (clauseString.isEmpty() ? prologStructure.getAlephString() :
-                            ", " + prologStructure.getAlephString());
+                    if (!isLiteralMostGeneralWRTOtherLiterals(head, clause, prologStructure)) {
+                        clauseString += (clauseString.isEmpty() ? prologStructure.getAlephString() :
+                                ", " + prologStructure.getAlephString());
+                    }
                 }
-                hypothesisDump.add(head.getAlephString() + " :- " + clauseString + ".");
+
+                if (!clauseString.isEmpty() && clauseString != "") {
+                    hypothesisDump.add(head.getAlephString() + " :- " + clauseString + ".");
+                }
             }
         }
         return hypothesisDump;
     }
+
+    // Returns whether or not a literal is most general with respect to the other literals in the clause
+    private boolean isLiteralMostGeneralWRTOtherLiterals(PrologStructure head, AndTree theClause, PrologStructure literal) {
+        boolean ret = true;
+        List<LiteralContainingType> literalVariables = collectVariablesInClause(head, theClause, literal, false, PrologVariable.class);
+        List<LiteralContainingType> otherAndTreeVariables = collectVariablesInClause(head, theClause, literal, true, PrologVariable.class);
+        outerloop:
+        for (LiteralContainingType t : literalVariables) {
+            AbstractPrologTerm check = t.getAbstractPrologTerm();
+            for (LiteralContainingType ot : otherAndTreeVariables) {
+                if (ot.getAbstractPrologTerm().equals(check)) {
+                    ret = false;
+                    break outerloop;
+                }
+            }
+        }
+        return ret;
+    }
+
+//    // This is operating at the clause level
+//    private boolean isClauseMostGeneralWRTOtherClauses(AndTree theClause) {
+//        boolean ret = true;
+//        List<ClauseContainingType> andTreeVariables = collectVariablesInHypothesis(theClause, false, PrologVariable.class);
+//        List<ClauseContainingType> otherAndTreeVariables = collectVariablesInHypothesis(theClause, true, PrologVariable.class);
+//        outerloop:
+//        for (ClauseContainingType t : andTreeVariables) {
+//            AbstractPrologTerm check = t.getAbstractPrologTerm();
+//            for (ClauseContainingType ot : otherAndTreeVariables) {
+//                if (ot.getAbstractPrologTerm().equals(check)) {
+//                    ret = false;
+//                    break outerloop;
+//                }
+//            }
+//        }
+//        return ret;
+//    }
 
     public double[][] getCenteredKernelMatrix() {
         return centeredKernelMatrix;

@@ -1,0 +1,99 @@
+{
+  "hypothesis": {
+    "'active'(A)": {
+      "numericAssignment": 0,
+      "treeSize": 3,
+      "allChildExpressions": [
+        {
+          "numericAssignment": 0,
+          "treeSize": 4,
+          "allChildExpressions": [
+            {
+              "text": "set",
+              "linkedObject": null,
+              "lineNumber": -1,
+              "strPosition": -1,
+              "functor": {
+                "text": "set",
+                "linkedObject": null,
+                "lineNumber": -1,
+                "strPosition": -1,
+                "arity": 2,
+                "priority": 0,
+                "type": "ATOM"
+              },
+              "arity": 2,
+              "alephString": "set(NEW_VAR_10, NEW_VAR_11)",
+              "priority": 0,
+              "type": "STRUCT"
+            },
+            {
+              "text": "phenanthrene",
+              "linkedObject": null,
+              "lineNumber": 6,
+              "strPosition": 29,
+              "functor": {
+                "text": "phenanthrene",
+                "linkedObject": null,
+                "lineNumber": -1,
+                "strPosition": -1,
+                "arity": 2,
+                "priority": 0,
+                "type": "ATOM"
+              },
+              "arity": 2,
+              "alephString": "phenanthrene(A, D)",
+              "priority": 0,
+              "type": "STRUCT"
+            },
+            {
+              "text": "phenanthrene",
+              "linkedObject": null,
+              "lineNumber": 6,
+              "strPosition": 29,
+              "functor": {
+                "text": "phenanthrene",
+                "linkedObject": null,
+                "lineNumber": -1,
+                "strPosition": -1,
+                "arity": 2,
+                "priority": 0,
+                "type": "ATOM"
+              },
+              "arity": 2,
+              "alephString": "phenanthrene(A, D)",
+              "priority": 0,
+              "type": "STRUCT"
+            }
+          ]
+        },
+        {
+          "numericAssignment": 0,
+          "treeSize": 2,
+          "allChildExpressions": [
+            {
+              "text": "lumo",
+              "linkedObject": null,
+              "lineNumber": 6,
+              "strPosition": 20,
+              "functor": {
+                "text": "lumo",
+                "linkedObject": null,
+                "lineNumber": -1,
+                "strPosition": -1,
+                "arity": 2,
+                "priority": 0,
+                "type": "ATOM"
+              },
+              "arity": 2,
+              "alephString": "lumo(A, D)",
+              "priority": 0,
+              "type": "STRUCT"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "score": 0.42250214842951
+}

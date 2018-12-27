@@ -28,10 +28,15 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
 
     @Override
     public double computeScore(Hypothesis h, int hypothesisNumber, String outputDir) {
-        h.getHypothesisDump().forEach(log::debug);
         // 1 - write or tree to file "hypothesis_gen<x>_member<y>.pl"
         //     - write each highest level AndTree in the OrTree(s) as its (their) own clause
         List<String> hypothesisDump = h.getHypothesisDump();
+        if (hypothesisDump.isEmpty()) {
+            // FOR DEBUG ONLY
+            hypothesisDump = h.getHypothesisDump();
+        } else {
+            hypothesisDump.forEach(log::debug);
+        }
         List<String> tmp = new ArrayList<>();
         int i = 0;
         outputParser = new CommandLineOutputParser(false);
@@ -44,10 +49,12 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
 
             // 2 - evaluate positive and parse output
             outputParser.setNegate(false);
+            outputParser.completed = false;
             hypothesisFactory.evaluateHypothesis(hypothesisOutputFile, true, outputParser);
 
             // 3 - evaluate negative and parse output
             outputParser.setNegate(true);
+            outputParser.completed = false;
             outputParser.completable = true;
             hypothesisFactory.evaluateHypothesis(hypothesisOutputFile, false, outputParser);
             i++;
@@ -59,14 +66,21 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             e.printStackTrace();
         }
 
-        int size = outputParser.targets.keySet().size();
-        double[][] targetMatrix = new double[size][size];
-        double[][] kernelMatrix = new double[size][size];
+        if (!hypothesisDump.isEmpty()) {
+            int size = outputParser.targets.keySet().size();
+            double[][] targetMatrix = new double[size][size];
+            double[][] kernelMatrix = new double[size][size];
 
-        // Compute the totals and return
-        h.setScore(computeAccuracy(size, targetMatrix, kernelMatrix));
-        h.setCenteredKernelMatrix(kernelMatrix);
-        h.setExamples(outputParser.coveredClauses.keySet());
+            // Compute the totals and return
+            h.setScore(computeAccuracy(size, targetMatrix, kernelMatrix));
+            h.setCenteredKernelMatrix(kernelMatrix);
+            h.setExamples(outputParser.coveredClauses.keySet());
+        } else {
+            // there were either no clauses or the clauses which existed had all most
+            // general literals in them with no variables matching the head of the clause;
+            // hence, there basically was no hypothesis - we will score this with a zero
+            h.setScore(0.0);
+        }
         return h.getScore();
     }
 
@@ -239,6 +253,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
         private static final String COVERED_STRING = "covered]";
         private static final String NOT_COVERED = "not covered";
         private boolean negate = false;
+        boolean updated = false;
         boolean completed = false;
         boolean completable = false;
 
@@ -278,10 +293,10 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
 
         @Override
         public void finish() {
-            if (completable) {
+//            if (completable) {
                 completed = true;
-                coveredClauses.notifyAll();
-            }
+//                coveredClauses.notifyAll();
+//            }
         }
     }
 }

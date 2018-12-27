@@ -66,8 +66,10 @@ public class CommandLineRunner {
                 consumer.accept(s);
                 log.error(s);
             }
+
             int exitCode = p.waitFor();
             p.destroy();
+            consumer.finish();
             assert exitCode == 0;
         } catch (IOException e) {
             e.printStackTrace();

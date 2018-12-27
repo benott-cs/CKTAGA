@@ -58,8 +58,8 @@ public class PopulationManager {
         this.propertyManager = propertyManager;
         hypothesisFactory = new HypothesisFactory(propertyManager);
         KernelHelper kernelHelper = new KernelHelper(propertyManager);
-//        hypothesisScorerIF = new CenteredKTAScorer(hypothesisFactory, kernelHelper,false);
-        hypothesisScorerIF = new HybridScorer(hypothesisFactory, kernelHelper,false);
+        hypothesisScorerIF = new CenteredKTAScorer(hypothesisFactory, kernelHelper,false);
+//        hypothesisScorerIF = new HybridScorer(hypothesisFactory, kernelHelper,false);
 //        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
 //        hypothesisScorerIF = new RandomScorer();
         mutationHandler = new MutationHandler(propertyManager);
@@ -314,6 +314,9 @@ public class PopulationManager {
             case AND_SUBTREE_NODE_SWAP:
                 AndTree andTree1 = child1.getValueForMthStructure(child1.getRandomRule()).getRandomChildExpression();
                 AndTree andTree2 = child2.getValueForMthStructure(child2.getRandomRule()).getRandomChildExpression();
+                if (Objects.isNull(andTree1) || Objects.isNull(andTree2)) {
+                    throw new IllegalStateException("Received null and tree(s)");
+                }
                 List<PrologStructure> rule1NthNode = andTree1.getNthNode(rand.nextInt(andTree1.getTreeSize()));
                 List<PrologStructure> rule2NthNode = andTree2.getNthNode(rand.nextInt(andTree2.getTreeSize()));
                 andTree1.removeSomeChildExpressions(rule1NthNode);
