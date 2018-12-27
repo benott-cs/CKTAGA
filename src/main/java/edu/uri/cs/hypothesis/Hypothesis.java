@@ -272,21 +272,33 @@ public class Hypothesis {
 
     // This will either return all variables in the filterToThisLiteral (if negateFilter is false)
     // or it will return all variables in the clause which are not in the filterToThisLiteral.
-    public <T extends AbstractPrologTerm> List<LiteralContainingType> collectVariablesInClause(
-            PrologStructure head, AndTree theClause, PrologStructure filterToThisLiteral,
-            boolean negateFilter, Class<T> cls) {
+    public <T extends AbstractPrologTerm> List<LiteralContainingType> collectVariablesInOneLiteral(
+            PrologStructure literal, Class<T> cls) {
         List<LiteralContainingType> allVariables = new ArrayList<>();
-        for (int i = 0; i < head.getArity(); i++) {
+        for (int i = 0; i < literal.getArity(); i++) {
             // only in the negate filter case - the filter literal is a literal in the body of the clause;
             // if the user wants to strictly retrieve variables in that literal, then we will not add the head
             // variables
-            if (cls.isInstance(head.getElement(i)) && negateFilter) {
+            if (cls.isInstance(literal.getElement(i))) {
                 LiteralContainingType literalContainingType =
-                        new LiteralContainingType(cls, head, head.getElement(i));
+                        new LiteralContainingType(cls, literal, literal.getElement(i));
                 if (!allVariables.contains(literalContainingType)) {
                     allVariables.add(literalContainingType);
                 }
             }
+        }
+        return allVariables;
+    }
+
+    // This will either return all variables in the filterToThisLiteral (if negateFilter is false)
+    // or it will return all variables in the clause which are not in the filterToThisLiteral.
+    public <T extends AbstractPrologTerm> List<LiteralContainingType> collectVariablesInClause(
+            PrologStructure head, AndTree theClause, PrologStructure filterToThisLiteral,
+            boolean negateFilter, Class<T> cls) {
+        List<LiteralContainingType> allVariables = new ArrayList<>();
+        if (negateFilter) {
+            List<LiteralContainingType> headVars = collectVariablesInOneLiteral(head, cls);
+            allVariables.addAll(headVars);
         }
 
         for (PrologStructure prologStructure : theClause.getAllChildExpressions()) {
@@ -324,16 +336,42 @@ public class Hypothesis {
         List<String> hypothesisDump = new ArrayList<>();
         for (PrologStructure head : hypothesis.keySet()) {
             OrTree conceptDescription = hypothesis.get(head);
+            List<VariablesInLiteral> literalsToWrite = new ArrayList<>();
             for (AndTree clause : conceptDescription.getAllChildExpressions()) {
-                String clauseString = "";
-
                 for (PrologStructure prologStructure : clause.getAllChildExpressions()) {
-                    if (!isLiteralMostGeneralWRTOtherLiterals(head, clause, prologStructure)) {
-                        clauseString += (clauseString.isEmpty() ? prologStructure.getAlephString() :
-                                ", " + prologStructure.getAlephString());
+                    VariablesInLiteral v = isLiteralMostGeneralWRTOtherLiterals(head, clause, prologStructure);
+                    if (!v.isMostGeneral()) {
+                        literalsToWrite.add(v);
                     }
                 }
-
+                boolean firstPass = true;
+                List<VariablesInLiteral> prev = new ArrayList<>();
+                String clauseString = "";
+                while (!literalsToWrite.isEmpty()) {
+                    List<VariablesInLiteral> sharedWithPrev;
+                    if (firstPass) {
+                        sharedWithPrev = literalsToWrite.stream().filter(l -> l.isVariableInHead()).collect(Collectors.toList());
+                        firstPass = false;
+                        // In this case there were no shared variables with the head so the hypothesis is pointless
+                        if (sharedWithPrev.isEmpty()) {
+                            literalsToWrite.clear();
+                        }
+                    } else {
+                        sharedWithPrev = getLiteralsWithSharedVariableToPrevious(prev, literalsToWrite);
+                    }
+                    // this shouldn't happen because most general clauses aren't allowed
+                    // we just add it as an additional protection measure
+                    if (sharedWithPrev.isEmpty() && !literalsToWrite.isEmpty()) {
+                        // the remaining clauses are most general with respect to the head
+                        // and already processed clauses - no need to include them since
+                        // they add no value
+                        literalsToWrite.clear();
+                    } else {
+                        clauseString = getStringsForClause(clauseString, sharedWithPrev);
+                    }
+                    prev.addAll(sharedWithPrev);
+                    literalsToWrite.removeAll(sharedWithPrev);
+                }
                 if (!clauseString.isEmpty() && clauseString != "") {
                     hypothesisDump.add(head.getAlephString() + " :- " + clauseString + ".");
                 }
@@ -342,21 +380,46 @@ public class Hypothesis {
         return hypothesisDump;
     }
 
+    private List<VariablesInLiteral> getLiteralsWithSharedVariableToPrevious(List<VariablesInLiteral> prev,
+                                                                             List<VariablesInLiteral> remaining) {
+        List<VariablesInLiteral> ret = new ArrayList<>();
+        for (VariablesInLiteral usedLit : prev) {
+            for (VariablesInLiteral unusedLit : remaining) {
+                if (usedLit.hasSharedVariable(unusedLit.getVariables()) && !ret.contains(unusedLit)) {
+                    ret.add(unusedLit);
+                }
+            }
+        }
+        return ret;
+    }
+
+    private String getStringsForClause(String startString, List<VariablesInLiteral> literals) {
+        String clauseString = startString;
+        for (VariablesInLiteral literal : literals) {
+            clauseString += (clauseString.isEmpty() ? literal.getLiteral().getAlephString() :
+                    ", " + literal.getLiteral().getAlephString());
+
+        }
+        return clauseString;
+    }
+
     // Returns whether or not a literal is most general with respect to the other literals in the clause
-    private boolean isLiteralMostGeneralWRTOtherLiterals(PrologStructure head, AndTree theClause, PrologStructure literal) {
-        boolean ret = true;
+    private VariablesInLiteral isLiteralMostGeneralWRTOtherLiterals(PrologStructure head, AndTree theClause, PrologStructure literal) {
+        boolean isMostGeneral = true;
         List<LiteralContainingType> literalVariables = collectVariablesInClause(head, theClause, literal, false, PrologVariable.class);
         List<LiteralContainingType> otherAndTreeVariables = collectVariablesInClause(head, theClause, literal, true, PrologVariable.class);
+        List<LiteralContainingType> headVars = collectVariablesInOneLiteral(head, PrologVariable.class);
         outerloop:
         for (LiteralContainingType t : literalVariables) {
             AbstractPrologTerm check = t.getAbstractPrologTerm();
             for (LiteralContainingType ot : otherAndTreeVariables) {
                 if (ot.getAbstractPrologTerm().equals(check)) {
-                    ret = false;
+                    isMostGeneral = false;
                     break outerloop;
                 }
             }
         }
+        VariablesInLiteral ret = new VariablesInLiteral(literalVariables, literal, headVars, isMostGeneral);
         return ret;
     }
 
