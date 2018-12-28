@@ -410,8 +410,11 @@ public class Hypothesis {
                     literalsToWrite.removeAll(sharedWithPrev);
                 }
                 // if the clause isn't empty and isn't a duplicate, add it to the dump
-                if (!clauseString.isEmpty() && clauseString != "" && !hypothesisDump.contains(clauseString)) {
-                    hypothesisDump.add(head.getAlephString() + " :- " + clauseString + ".");
+                if (!clauseString.isEmpty() && clauseString != "") {
+                    String clauseToAdd = head.getAlephString() + " :- " + clauseString + ".";
+                    if (!hypothesisDump.contains(clauseToAdd)) {
+                        hypothesisDump.add(clauseToAdd);
+                    }
                 }
             }
         }
