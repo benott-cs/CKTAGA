@@ -144,6 +144,9 @@ public class PopulationManager {
         hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
         String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
         double accuracy = hypothesisScorerIF.computeScore(hypotheses.get(0), hypotheses.size() + 100, outputDir);
+        String bestHypothesisFile = hypothesisOutputDirectory + "/bestHypothesis.pl";
+        FileReaderUtils.writeFile(bestHypothesisFile,
+                hypotheses.get(0).getHypothesisDump(), false);
         log.debug("Accuracy of best aligned solution is {}", accuracy);
     }
 
