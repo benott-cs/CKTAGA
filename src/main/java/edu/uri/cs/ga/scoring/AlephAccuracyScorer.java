@@ -5,7 +5,6 @@ import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.util.FileReaderUtils;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 /**
  * Created by Ben on 12/6/18.

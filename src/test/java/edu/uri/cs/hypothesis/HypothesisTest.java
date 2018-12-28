@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by Ben on 12/26/18.

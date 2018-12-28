@@ -2,7 +2,6 @@ package edu.uri.cs.hypothesis;
 
 import com.igormaznitsa.prologparser.terms.AbstractPrologTerm;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
-import edu.uri.cs.tree.AndTree;
 
 /**
  * Created by Ben on 12/26/18.

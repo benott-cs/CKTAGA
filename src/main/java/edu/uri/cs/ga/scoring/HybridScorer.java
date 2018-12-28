@@ -1,6 +1,5 @@
 package edu.uri.cs.ga.scoring;
 
-import com.igormaznitsa.prologparser.terms.AlephStringConstant;
 import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;

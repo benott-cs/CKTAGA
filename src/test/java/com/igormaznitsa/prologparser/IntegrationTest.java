@@ -21,16 +21,13 @@ import com.igormaznitsa.prologparser.operators.OperatorContainer;
 import com.igormaznitsa.prologparser.operators.OperatorType;
 import com.igormaznitsa.prologparser.terms.*;
 import com.igormaznitsa.prologparser.utils.StringUtils;
-import edu.uri.cs.util.FileReaderUtils;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.nio.channels.Channels;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;

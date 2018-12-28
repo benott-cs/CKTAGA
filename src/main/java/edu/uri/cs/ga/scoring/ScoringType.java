@@ -1,7 +1,5 @@
 package edu.uri.cs.ga.scoring;
 
-import edu.uri.cs.ga.CrossoverType;
-
 import java.util.HashMap;
 import java.util.Map;
 

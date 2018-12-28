@@ -1,9 +1,5 @@
 package edu.uri.cs.ga;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
@@ -20,7 +16,6 @@ import edu.uri.cs.util.PropertyManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -171,17 +166,12 @@ public class PopulationManager {
         if (!directory.exists()) {
             directory.mkdir();
         }
-        ObjectMapper om = new ObjectMapper();
-        om.configure(SerializationFeature.INDENT_OUTPUT, true);
-        om.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
         int i = 0;
         for (Hypothesis h : hypotheses) {
-            try {
-                om.writeValue(new File(outputDir + "/hypothesis_" + i + ".json"), h);
-                i++;
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            String outFileName = outputDir + "/hypothesis_" + i + ".pl";
+            FileReaderUtils.writeFile(outFileName,
+                    h.getHypothesisDump(), false);
+            i++;
         }
     }
 
