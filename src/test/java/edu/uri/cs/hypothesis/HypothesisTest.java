@@ -18,8 +18,8 @@ public class HypothesisTest {
         ObjectMapper mapper = new ObjectMapper();
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("hypothesisToTest.json").getFile());
-        Hypothesis h = mapper.readValue(file, Hypothesis.class);
-        List<String> dump = h.getHypothesisDump();
+//        Hypothesis h = mapper.readValue(file, Hypothesis.class);
+//        List<String> dump = h.getHypothesisDump();
     }
 
 }

@@ -76,19 +76,19 @@ public class IntegrationTest extends AbstractPrologParserTest {
 //        assertEquals(structure.getArity(), varSet.size());
 //    }
 
-    @Test
-    public void testVariableMustBeNotEqualAtSentenceBounds() throws Exception {
-        PrologStructure structure = (PrologStructure) parser.nextSentence("test(A,B,C,A,B,C,A,B,C,A,B,C,_,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,_,_).");
-
-        final Set<PrologVariable> varSet = new HashSet<PrologVariable>();
-        for (int li = 0; li < structure.getArity(); li++) {
-            final PrologVariable currentVar = (PrologVariable) structure.getElement(li);
-            assertFalse(varSet.contains(currentVar));
-            varSet.add(currentVar);
-        }
-
-        assertEquals(structure.getArity(), varSet.size());
-    }
+//    @Test
+//    public void testVariableMustBeNotEqualAtSentenceBounds() throws Exception {
+//        PrologStructure structure = (PrologStructure) parser.nextSentence("test(A,B,C,A,B,C,A,B,C,A,B,C,_,A,B,C,A,B,C,A,B,C,A,B,C,A,B,C,_,_).");
+//
+//        final Set<PrologVariable> varSet = new HashSet<PrologVariable>();
+//        for (int li = 0; li < structure.getArity(); li++) {
+//            final PrologVariable currentVar = (PrologVariable) structure.getElement(li);
+//            assertFalse(varSet.contains(currentVar));
+//            varSet.add(currentVar);
+//        }
+//
+//        assertEquals(structure.getArity(), varSet.size());
+//    }
 
     @Test
     public void testVariablesAtSentenceBounds() throws Exception {
