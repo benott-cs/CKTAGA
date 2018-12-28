@@ -5,10 +5,12 @@ import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Ben on 12/17/18.
  */
+@Slf4j
 public class HybridScorer implements HypothesisScorerIF, KTACalculatorIF {
 
     private AlephAccuracyScorer alephAccuracyScorer;
@@ -24,6 +26,8 @@ public class HybridScorer implements HypothesisScorerIF, KTACalculatorIF {
         double centeredKTAScore = centeredKTAScorer.computeScore(h, hypothesisNumber, outputDir);
         double accuracyScore = alephAccuracyScorer.computeScore(h, hypothesisNumber, outputDir);
         h.setScore(centeredKTAScore * accuracyScore);
+        log.debug("Hypothesis {} from gen {} had HybridScore, Accuracy of {}, {}", hypothesisNumber,
+                outputDir, h.getScore(), accuracyScore);
         return h.getScore();
     }
 
