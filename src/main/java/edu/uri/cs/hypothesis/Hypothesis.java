@@ -99,48 +99,49 @@ public class Hypothesis {
 
     public void refineVariable(ClauseContainingType clauseContainingType, AbstractPrologTerm abstractPrologTerm) {
         PrologStructure head = null;
-        AndTree treeToUpdate = null;
+        AndTree treeToUpdate = clauseContainingType.getClause();
         if (Objects.nonNull(clauseContainingType.getHead())) {
             head = cloner.deepClone(clauseContainingType.getHead());
-            treeToUpdate = cloner.deepClone(clauseContainingType.getClause());
-        }
-        if (Objects.isNull(treeToUpdate)) {
-            treeToUpdate = clauseContainingType.getClause();
         }
         if (Objects.nonNull(head)) {
             for (OrTree o : hypothesis.values()) {
                 o.removeTreeItem(treeToUpdate);
             }
-            List<Integer> itemsToReplace = new ArrayList<>();
             for (int i = 0; i < head.getArity(); i++) {
-                if (head.getElement(i).equals(clauseContainingType.getAbstractPrologTerm())) {
-                    itemsToReplace.add(i);
+                AbstractPrologTerm term = head.getElement(i);
+                if (term.equals(clauseContainingType.getAbstractPrologTerm())) {
+                    head.setElement(i, abstractPrologTerm);
                 }
-            }
-            for (Integer i : itemsToReplace) {
-                head.setElement(i, abstractPrologTerm);
             }
         }
         Iterator<PrologStructure> iter = treeToUpdate.getAllChildExpressions().iterator();
         while (iter.hasNext()) {
             PrologStructure prologStructure = iter.next();
-            List<Integer> itemsToReplace = new ArrayList<>();
             for (int i = 0; i < prologStructure.getArity(); i++) {
-                if (prologStructure.getElement(i).equals(clauseContainingType.getAbstractPrologTerm())) {
-                    itemsToReplace.add(i);
+                AbstractPrologTerm term = prologStructure.getElement(i);
+                if (term.equals(clauseContainingType.getAbstractPrologTerm())) {
+                    prologStructure.setElement(i, abstractPrologTerm);
                 }
-            }
-            for (Integer i : itemsToReplace) {
-                prologStructure.setElement(i, abstractPrologTerm);
             }
         }
 
         if (Objects.nonNull(head)) {
             List<AndTree> andTrees = new ArrayList<>();
             andTrees.add(treeToUpdate);
-            OrTree orTree = new OrTree(andTrees);
+            OrTree orTree = null;boolean isNew = false;
+            if (hypothesis.containsKey(head)) {
+                orTree = hypothesis.get(head);
+            }
+            if (Objects.nonNull(orTree)) {
+                orTree.addIterm(treeToUpdate);
+            } else {
+                orTree = new OrTree(andTrees);
+                isNew = true;
+            }
             orTree.generateTree();
-            hypothesis.put(head, orTree);
+            if (isNew) {
+                hypothesis.put(head, orTree);
+            }
         }
     }
 
@@ -188,8 +189,15 @@ public class Hypothesis {
         return ret;
     }
 
-    public AndTree generateUpwardRefinementForVarOrConst(AndTree a, AbstractPrologTerm providedTerm,
+    public AndTree generateUpwardRefinementForVarOrConst(ClauseContainingType clauseWithConst,
                                                          PrologVariable variableToReplaceProvidedTerm) {
+        AndTree a = clauseWithConst.getClause();
+        AbstractPrologTerm providedTerm = clauseWithConst.getAbstractPrologTerm();
+        PrologStructure head = cloner.deepClone(clauseWithConst.getHead());
+        if (Objects.nonNull(head)) {
+            OrTree orTree = hypothesis.get(head);
+            orTree.removeTreeItem(a);
+        }
         // first pass to see how many times to replicate each structure
         Iterator<PrologStructure> andTreeIter = a.getAllChildExpressions().iterator();
         Map<PrologStructure, Integer> countsForDuplication = new HashMap<>();
@@ -228,6 +236,27 @@ public class Hypothesis {
         if (allChildren.size() != distinctChildren.size()) {
             a.setChildExpressions(distinctChildren);
         }
+
+        // update head if necessary
+        if (Objects.nonNull(head)) {
+            OrTree orTree = null;
+            for (int i = 0; i < head.getArity(); i++) {
+                AbstractPrologTerm abstractPrologTerm = head.getElement(i);
+                if (abstractPrologTerm.equals(providedTerm) && Math.random() < 0.5) {
+                    head.setElement(i, variableToReplaceProvidedTerm);
+                }
+            }
+            if (hypothesis.containsKey(head)) {
+                orTree = hypothesis.get(head);
+                orTree.addItemIfNotContains(a);
+            } else {
+                List<AndTree> andTrees = new ArrayList<>();
+                andTrees.add(a);
+                orTree = new OrTree(andTrees);
+                hypothesis.put(head, orTree);
+            }
+            orTree.generateTree();
+        }
         return a;
     }
 
@@ -262,6 +291,14 @@ public class Hypothesis {
                                     allVariables.add(clauseContainingType);
                                 }
                             }
+                        }
+                    }
+                    for (T variableInHead : variablesInHead) {
+                        ClauseContainingType clauseContainingType =
+                                new ClauseContainingType(cls, a, variableInHead);
+                        clauseContainingType.setHead(p);
+                        if (!allVariables.contains(clauseContainingType)) {
+                            allVariables.add(clauseContainingType);
                         }
                     }
                 }

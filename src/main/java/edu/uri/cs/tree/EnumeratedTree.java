@@ -56,6 +56,12 @@ public class EnumeratedTree<T extends Object> {
         childExpressions.add(item);
     }
 
+    public void addItemIfNotContains(T item) {
+        if (!childExpressions.contains(item)) {
+            childExpressions.add(item);
+        }
+    }
+
     public void addIterms(List<T> items) {
         childExpressions.addAll(items);
     }

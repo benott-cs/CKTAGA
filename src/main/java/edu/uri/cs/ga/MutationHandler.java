@@ -154,8 +154,8 @@ public class MutationHandler {
                 case CONSTANT: {
                     ClauseContainingType clauseWithConst = h.getClauseWithRandomConstant();
                     if (Objects.nonNull(clauseWithConst)) {
-                        AndTree andTree = h.generateUpwardRefinementForVarOrConst(clauseWithConst.getClause(),
-                                clauseWithConst.getAbstractPrologTerm(), getNextNewVariable());
+                        AndTree andTree = h.generateUpwardRefinementForVarOrConst(clauseWithConst,
+                                getNextNewVariable());
                         andTree.generateTree();
                         success = true;
                     }
@@ -164,8 +164,8 @@ public class MutationHandler {
                 case VARIABLE: {
                     ClauseContainingType clauseWithVariable = h.getClauseWithRandomVariable();
                     if (Objects.nonNull(clauseWithVariable)) {
-                        AndTree andTree = h.generateUpwardRefinementForVarOrConst(clauseWithVariable.getClause(),
-                                clauseWithVariable.getAbstractPrologTerm(), getNextNewVariable());
+                        AndTree andTree = h.generateUpwardRefinementForVarOrConst(clauseWithVariable,
+                                getNextNewVariable());
                         andTree.generateTree();
                         success = true;
                     }
