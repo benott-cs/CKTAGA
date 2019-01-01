@@ -22,8 +22,9 @@ public class HypothesisFactory {
     private String negativeExamplesFile;
     private static final String COMMAND_TOKEN = ":- ";
     private static final String THEORY_NUM_TOKEN = "<NUM>";
-    private static final String GENERATED_INPUT_BASE = "generated_theory_" + THEORY_NUM_TOKEN + ".pl";
-    private static final String CREATE_A_HYPOTHESIS_FILE = "create_a_hypothesis.pl";
+    private static String GENERATED_INPUT_BASE = "generated_theory_" + THEORY_NUM_TOKEN + ".pl";
+    private static String CREATE_A_HYPOTHESIS_FILE = "create_a_hypothesis.pl";
+    private static String OUTPUT_DIR = "";
     private CommandLineRunner commandLineRunner;
 
     public HypothesisFactory(PropertyManager propertyManager) {
@@ -34,13 +35,16 @@ public class HypothesisFactory {
         this.negativeExamplesFile = propertyManager.getProperty(PropertyManager.ALEPH_HYPOTHESIS_NEGATIVE_EXAMPLE_FILE);
         this.positiveExamplesFile = propertyManager.getProperty(PropertyManager.ALEPH_HYPOTHESIS_POSITIVE_EXAMPLE_FILE);
         this.commandLineRunner = new CommandLineRunner(propertyManager);
+        this.OUTPUT_DIR = propertyManager.getProperty(PropertyManager.CRKTAGA_HYPOTHESES_OUTPUT_DIRECTORY);
+        this.CREATE_A_HYPOTHESIS_FILE = OUTPUT_DIR + "/" + CREATE_A_HYPOTHESIS_FILE;
+        this.GENERATED_INPUT_BASE = OUTPUT_DIR + "/" + GENERATED_INPUT_BASE;
     }
 
     public String createHypothesis(List<String> positiveExamples, List<String> negativeExamples, int hypNum) {
         createInputFiles(positiveExamples, negativeExamples);
         List<String> runnerScriptInputList = new ArrayList<>();
         String outputFileName = createRunnerScript(runnerScriptInputList, hypNum);
-        String scriptName = getBackgroundDataRootDir(backgroundDataFileName) + CREATE_A_HYPOTHESIS_FILE;
+        String scriptName = CREATE_A_HYPOTHESIS_FILE;
         FileReaderUtils.writeFile(scriptName, runnerScriptInputList, true);
         commandLineRunner.runCommand(scriptName);
         return outputFileName;
@@ -50,7 +54,7 @@ public class HypothesisFactory {
                                      ConsumerWithEnd<String> commandLineOutputParser) {
         List<String> runnerScriptInputList = new ArrayList<>();
         createEvaluationScript(runnerScriptInputList, hypothesisFileToEvaluate, testPositive);
-        String scriptName = getBackgroundDataRootDir(backgroundDataFileName) + "logenProEvaluate.pl";
+        String scriptName = OUTPUT_DIR + "/" + "logenProEvaluate.pl";
         FileReaderUtils.writeFile(scriptName, runnerScriptInputList, true);
         commandLineRunner.runCommand(scriptName, commandLineOutputParser);
     }
@@ -69,7 +73,6 @@ public class HypothesisFactory {
         strings.add(COMMAND_TOKEN + "read_all('" + FileReaderUtils.getFilenameWithNoExtension(backgroundDataFileName) + "').");
         strings.add(COMMAND_TOKEN + "induce.");
         String outputFileName = GENERATED_INPUT_BASE.replaceAll(THEORY_NUM_TOKEN, Integer.toString(hypNum));
-        outputFileName = getBackgroundDataRootDir(backgroundDataFileName) + outputFileName;
         strings.add(COMMAND_TOKEN + "write_rules('" + outputFileName + "').");
         return outputFileName;
     }

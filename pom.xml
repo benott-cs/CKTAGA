@@ -122,9 +122,9 @@
         <dependency>
             <groupId>tw.edu.ntu.csie</groupId>
             <artifactId>libsvm</artifactId>
-            <version>1.0</version>
+            <version>3.23</version>
             <scope>system</scope>
-            <systemPath>/media/sf_School/PhDCourses/dissertation/Code/java-prolog-parser/libsvm-3.23/java/libsvm.jar</systemPath>
+            <systemPath>/home/Ben/Code/java-prolog-parser/lib/libsvm.jar</systemPath>
         </dependency>
         <!--&lt;!&ndash; https://mvnrepository.com/artifact/org.ojalgo/ojalgo &ndash;&gt;-->
         <!--<dependency>-->
