@@ -51,7 +51,9 @@ public class PopulationManager {
         this.propertyManager = propertyManager;
         hypothesisFactory = new HypothesisFactory(propertyManager);
         KernelHelper kernelHelper = new KernelHelper(propertyManager);
-        hypothesisScorerIF = hypothesisScorerFactory.getHypothesisScorer(hypothesisFactory, kernelHelper,false,
+        boolean weightedAccuracy =
+                propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_WEIGHTED_ACCURACY);
+        hypothesisScorerIF = hypothesisScorerFactory.getHypothesisScorer(hypothesisFactory, kernelHelper, weightedAccuracy,
                 propertyManager.getScoringType());
         mutationHandler = new MutationHandler(propertyManager);
     }
@@ -150,7 +152,9 @@ public class PopulationManager {
                 .reversed()));
         Hypothesis bestHypothesis = hypotheses.get(0);
         System.out.println(notes + " -- the best hypothesis below had a score of: " + bestHypothesis.getScore());
+        log.debug(notes + " -- the best hypothesis below had a score of: " + bestHypothesis.getScore());
         bestHypothesis.getHypothesisDump().forEach(System.out::println);
+        bestHypothesis.getHypothesisDump().forEach(log::debug);
     }
 
     private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {

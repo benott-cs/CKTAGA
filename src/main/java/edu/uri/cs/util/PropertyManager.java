@@ -23,6 +23,7 @@ public class PropertyManager {
     public static final String CRKTAGA_CROSSOVER_PARAM_P2 = "crktaga.crossover.params.p2";
     public static final String CRKTAGA_CROSSOVER_PARAM_P3 = "crktaga.crossover.params.p3";
 
+    public static final String CRKTAGA_WEIGHTED_ACCURACY = "crktaga.weighted.accuracy";
     public static final String CRKTAGA_DIVERSITY_BOOST = "crktaga.diversity.boost";
     public static final String CRKTAGA_MUTATION_PROB = "crktaga.mutation.prob";
     public static final String CRKTAGA_MUTATION_DOWNWARD_REFINEMENT_PROB = "crktaga.mutation.downward.refinement.prob";
