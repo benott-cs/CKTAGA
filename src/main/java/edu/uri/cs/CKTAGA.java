@@ -2,6 +2,7 @@ package edu.uri.cs;
 
 import edu.uri.cs.ga.Logenpro;
 import edu.uri.cs.util.PropertyManager;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.cli.*;
 
 import java.io.File;
@@ -11,6 +12,7 @@ import java.net.URL;
 /**
  * Created by Ben on 7/24/18.
  */
+@Slf4j
 public class CKTAGA {
 
     private static final String APPLICATION_PROPERTIES_LOCATION = "p";
@@ -45,11 +47,15 @@ public class CKTAGA {
             }
         }
         System.out.println("Using application.properties URL of " + appPropsFileURL.getPath());
+        log.debug("Using application.properties URL of " + appPropsFileURL.getPath());
         PropertyManager propertyManager = new PropertyManager(appPropsFileURL);
         propertyManager.loadProperties();
+        long timeBeforeStarting = System.currentTimeMillis();
         Logenpro logenpro = new Logenpro(propertyManager);
         logenpro.initialize();
         logenpro.evolve();
+        long timeDelta = System.currentTimeMillis() - timeBeforeStarting;
+        log.debug("Run took {} ms", timeDelta);
         System.exit(0);
     }
 }
