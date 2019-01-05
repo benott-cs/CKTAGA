@@ -173,7 +173,7 @@ public class PopulationManager {
     private void writeHypothesesToFiles(String outputDir) {
         File directory = new File(outputDir);
         if (!directory.exists()) {
-            directory.mkdir();
+            directory.mkdirs();
         }
         int i = 0;
         for (Hypothesis h : hypotheses) {

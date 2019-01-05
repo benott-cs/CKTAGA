@@ -36,7 +36,7 @@ public class FileReaderUtils {
         BufferedWriter writeFile = null;
         File directory = new File(getParentDirectoryNameFromFilename(fileName));
         if (!directory.exists()) {
-            directory.mkdir();
+            directory.mkdirs();
         }
         try {
             output = new FileWriter(fileName);
