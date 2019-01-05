@@ -50,10 +50,19 @@ public class HypothesisFactory {
         return outputFileName;
     }
 
+    public void evaluateFinal(String hypothesisFileToEvaluate, String testFile,
+                                   ConsumerWithEnd<String> commandLineOutputParser) {
+        List<String> runnerScriptInputList = new ArrayList<>();
+        createTestEvaluationScript(runnerScriptInputList, hypothesisFileToEvaluate, testFile);
+        String scriptName = OUTPUT_DIR + "/" + "logenProEvaluateTest.pl";
+        FileReaderUtils.writeFile(scriptName, runnerScriptInputList, true);
+        commandLineRunner.runCommand(scriptName, commandLineOutputParser);
+    }
+
     public void evaluateHypothesis(String hypothesisFileToEvaluate, boolean testPositive,
                                      ConsumerWithEnd<String> commandLineOutputParser) {
         List<String> runnerScriptInputList = new ArrayList<>();
-        createEvaluationScript(runnerScriptInputList, hypothesisFileToEvaluate, testPositive);
+        createTrainingEvaluationScript(runnerScriptInputList, hypothesisFileToEvaluate, testPositive);
         String scriptName = OUTPUT_DIR + "/" + "logenProEvaluate.pl";
         FileReaderUtils.writeFile(scriptName, runnerScriptInputList, true);
         commandLineRunner.runCommand(scriptName, commandLineOutputParser);
@@ -77,15 +86,25 @@ public class HypothesisFactory {
         return outputFileName;
     }
 
-    private void createEvaluationScript(List<String> strings, String hypothesisFileToEvaluate,
+    private void createTestEvaluationScript(List<String> strings, String hypothesisFileToEvaluate,
+                                                String testFile) {
+        createEvaluationScriptLessTestClause(strings, hypothesisFileToEvaluate);
+        strings.add(COMMAND_TOKEN + "test('" + testFile + "', show, Cov, Tot).");
+    }
+
+    private void createTrainingEvaluationScript(List<String> strings, String hypothesisFileToEvaluate,
                                           boolean testPositive) {
+        createEvaluationScriptLessTestClause(strings, hypothesisFileToEvaluate);
+        strings.add(COMMAND_TOKEN + "test('" +
+                (testPositive ? positiveExamplesFile : negativeExamplesFile) +
+                "', show, Cov, Tot).");
+    }
+
+    private void createEvaluationScriptLessTestClause(List<String> strings, String hypothesisFileToEvaluate) {
         strings.add("#!" + yapLocation + " -L");
         strings.add(COMMAND_TOKEN + "['" + alephLocation + "'].");
         strings.add(COMMAND_TOKEN + "['" + backgroundDataFileName + "'].");
         strings.add(COMMAND_TOKEN + "['" + hypothesisFileToEvaluate + "'].");
-        strings.add(COMMAND_TOKEN + "test('" +
-                (testPositive ? positiveExamplesFile : negativeExamplesFile) +
-                "', show, Cov, Tot).");
     }
 
     private String getBackgroundDataRootDir(String backgroundDataFileName) {

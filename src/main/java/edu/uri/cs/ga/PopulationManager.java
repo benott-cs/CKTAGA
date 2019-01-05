@@ -144,7 +144,12 @@ public class PopulationManager {
         String bestHypothesisFile = hypothesisOutputDirectory + "/bestHypothesis.pl";
         FileReaderUtils.writeFile(bestHypothesisFile,
                 hypotheses.get(0).getHypothesisDump(), false);
-        log.debug("Accuracy of best aligned solution is {}", accuracy);
+        log.debug("Training accuracy of best aligned solution is {}", accuracy);
+
+        hypothesisScorerIF = new TestDataAccuracyEvaluator(hypothesisFactory, propertyManager);
+        outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
+        accuracy = hypothesisScorerIF.computeScore(hypotheses.get(0), hypotheses.size() + 200, outputDir);
+        log.debug("Test accuracy of best aligned solution is {}", accuracy);
     }
 
     private void printBestHypothesis(String notes) {

@@ -54,6 +54,10 @@ public class PropertyManager {
     public static final String KERNEL_COEFFICIENT = "crktaga.kernel.parameter.coef0";
     public static final String KERNEL_GAMMA = "crktaga.kernel.parameter.gamma";
 
+    public static final String CRKTAGA_TEST_DATA_FILE = "cktaga.test.data.file";
+    public static final String CRKTAGA_TEST_DATA_POS_TOKEN = "cktaga.test.data.pos.token";
+    public static final String CRKTAGA_TEST_DATA_NEG_TOKEN = "cktaga.test.data.neg.token";
+
     private Properties properties;
     private URL propertyFileURL;
 

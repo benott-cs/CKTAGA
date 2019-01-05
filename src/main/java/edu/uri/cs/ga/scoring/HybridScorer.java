@@ -17,7 +17,7 @@ public class HybridScorer implements HypothesisScorerIF, KTACalculatorIF {
 
     public HybridScorer(HypothesisFactory hypothesisFactory, KernelHelper kernelHelper, boolean weighted) {
         this.alephAccuracyScorer = new AlephAccuracyScorer(hypothesisFactory, weighted);
-        this.centeredKTAScorer = new CenteredKTAScorer(hypothesisFactory, kernelHelper, weighted);
+        this.centeredKTAScorer = new CenteredKTAScorer(hypothesisFactory, kernelHelper);
     }
 
     @Override

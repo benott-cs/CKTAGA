@@ -15,15 +15,13 @@ import java.util.*;
 @Slf4j
 public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
     private HypothesisFactory hypothesisFactory;
-    private boolean weighted;
     private CommandLineOutputParser outputParser;
     private KernelHelper kernelHelper;
     private boolean verbose = false;
 
-    public CenteredKTAScorer(HypothesisFactory hypothesisFactory, KernelHelper kernelHelper, boolean weighted) {
+    public CenteredKTAScorer(HypothesisFactory hypothesisFactory, KernelHelper kernelHelper) {
         this.hypothesisFactory = hypothesisFactory;
         this.kernelHelper = kernelHelper;
-        this.weighted = weighted;
     }
 
     @Override

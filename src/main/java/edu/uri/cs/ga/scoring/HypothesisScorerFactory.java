@@ -24,7 +24,7 @@ public class HypothesisScorerFactory {
                 ret = new AlephAccuracyScorer(hypothesisFactory, weighted);
                 break;
             case CENTERED_KTA:
-                ret = new CenteredKTAScorer(hypothesisFactory, kernelHelper,weighted);
+                ret = new CenteredKTAScorer(hypothesisFactory, kernelHelper);
                 break;
             case ACCUR_TIMES_CKTA:
                 ret = new HybridScorer(hypothesisFactory, kernelHelper,weighted);
