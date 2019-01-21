@@ -28,6 +28,7 @@ public class MutationHandler {
     private String ignorePattern = "";
     private String atomIgnorePattern = "";
     private final int MAX_REFINEMENT_TRIES_ALLOWED = 5;
+    private final int MAX_VARIABLE_SELECTION_RETRIES = 5;
     private static int variableCounter = 0;
     private static final String CRKTAGA_CREATED_VARIABLE_NAME_START = "NEW_VAR_";
 
@@ -90,8 +91,10 @@ public class MutationHandler {
                 case CONSTANT: {
                     AbstractPrologTerm constant = h.getRandomPrologConstant(ignorePattern);
                     ClauseContainingType variable = h.getClauseWithRandomVariable();
-                    h.refineVariable(variable, constant);
-                    success = true;
+                    if (Objects.nonNull(variable)) {
+                        h.refineVariable(variable, constant);
+                        success = true;
+                    }
                     break;
                 }
                 case VARIABLE: {
@@ -100,11 +103,17 @@ public class MutationHandler {
                         AndTree refineThis = andTrees.get(ThreadLocalRandom.current().nextInt(andTrees.size()));
                         ClauseContainingType variable1 = h.getRandomVariableFromClause(refineThis);
                         ClauseContainingType variable2 = h.getRandomVariableFromClause(refineThis);
-                        while (variable1.getAbstractPrologTerm().equals(variable2.getAbstractPrologTerm())) {
-                            variable2 = h.getRandomVariableFromClause(refineThis);
+                        if (Objects.nonNull(variable1) && Objects.nonNull(variable2)) {
+                            int i = 0;
+                            while (variable1.getAbstractPrologTerm().equals(variable2.getAbstractPrologTerm()) &&
+                                    i < MAX_VARIABLE_SELECTION_RETRIES) {
+                                variable2 = h.getRandomVariableFromClause(refineThis); i++;
+                            }
+                            if (!variable1.getAbstractPrologTerm().equals(variable2.getAbstractPrologTerm())) {
+                                h.refineVariable(variable1, variable2.getAbstractPrologTerm());
+                                success = true;
+                            }
                         }
-                        h.refineVariable(variable1, variable2.getAbstractPrologTerm());
-                        success = true;
                     }
                     break;
                 }
