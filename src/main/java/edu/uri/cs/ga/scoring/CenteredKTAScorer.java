@@ -69,7 +69,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             double[][] kernelMatrix = new double[size][size];
 
             // Compute the totals and return
-            h.setScore(computeAccuracy(size, targetMatrix, kernelMatrix));
+            h.setScore(computeAccuracy(size, hypothesisDump.size(), targetMatrix, kernelMatrix));
             h.setCenteredKernelMatrix(kernelMatrix);
             h.setExamples(outputParser.coveredClauses.keySet());
         } else {
@@ -81,9 +81,9 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
         return h.getScore();
     }
 
-    private synchronized double computeAccuracy(int size, double[][] targetMatrix, double[][] kernelMatrix) {
+    private synchronized double computeAccuracy(int size, int numClauses, double[][] targetMatrix, double[][] kernelMatrix) {
 
-        computeMatrices(size, targetMatrix, kernelMatrix);
+        computeMatrices(size, numClauses, targetMatrix, kernelMatrix);
 
         log.debug("Matrices... before centering");
         printMatrix(kernelMatrix, "Kernel Matrix");
@@ -194,15 +194,17 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
         }
     }
 
-    private double[][] computeMatrices(int size, double[][] targetMatrix, double[][] kernelMatrix) {
+    private double[][] computeMatrices(int size, int numClauses, double[][] targetMatrix, double[][] kernelMatrix) {
         double[] targetVec = new double[size];
-        double[][] featureVecMatrix = new double[size][size];
+        // the second dimension is the number of clauses in the hypothesis
+        double[][] featureVecMatrix = new double[size][numClauses];
         int k = 0;
         log.debug("Key set is: " + outputParser.targets.keySet());
         for (String key : outputParser.targets.keySet()) {
             targetVec[k] = outputParser.targets.get(key);
             featureVecMatrix[k] = outputParser.coveredClauses.get(key).
                     stream().mapToDouble(Double::doubleValue).toArray();
+            log.debug("feature vec for {} is {} with target {}", key, featureVecMatrix[k], targetVec[k]);
             k++;
         }
         for (int i = 0; i < size; i++) {
