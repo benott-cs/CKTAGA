@@ -3,6 +3,7 @@ package edu.uri.cs.ga;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
+import edu.uri.cs.classifier.SVM;
 import edu.uri.cs.ga.scoring.*;
 import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
@@ -13,6 +14,8 @@ import edu.uri.cs.tree.AndTree;
 import edu.uri.cs.tree.OrTree;
 import edu.uri.cs.util.FileReaderUtils;
 import edu.uri.cs.util.PropertyManager;
+import libsvm.svm_parameter;
+import libsvm.svm_problem;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -137,22 +140,62 @@ public class PopulationManager {
             hypotheses = nextGenHypotheses;
             scoreHypotheses();
         }
-        printBestHypothesis("END");
-        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
-        String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
-        double accuracy = hypothesisScorerIF.computeScore(hypotheses.get(0), hypotheses.size() + 100, outputDir);
-        String bestHypothesisFile = hypothesisOutputDirectory + "/bestHypothesis.pl";
-        FileReaderUtils.writeFile(bestHypothesisFile,
-                hypotheses.get(0).getHypothesisDump(), false);
-        log.debug("Training accuracy of best aligned solution is {}", accuracy);
-
-        hypothesisScorerIF = new TestDataAccuracyEvaluator(hypothesisFactory, propertyManager);
-        outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
-        accuracy = hypothesisScorerIF.computeScore(hypotheses.get(0), hypotheses.size() + 200, outputDir);
-        log.debug("Test accuracy of best aligned solution is {}", accuracy);
+        Hypothesis bestHypothesis = printBestHypothesis("END");
+        evaluateBestHypothesis(bestHypothesis);
     }
 
-    private void printBestHypothesis(String notes) {
+    private void evaluateBestHypothesis(Hypothesis bestHypothesis) {
+        String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
+        KTACalculatorIF centeredKTAScorer = centeredKTAScorer(hypothesisScorerIF);
+        if (Objects.nonNull(centeredKTAScorer)) {
+            SVM svm = createClassifierForHypothesis(bestHypothesis);
+            log.debug("SVM training accuracy of best aligned solution is {}",
+                    svm.getAccuracyOnProvidedSample(svm.getSvm_problem()));
+            FeaturesAndTargets testFeatures =
+                    centeredKTAScorer.createFeatureVectorsForTestData(bestHypothesis, outputDir, propertyManager);
+            svm_problem prob = svm.createProblem(testFeatures);
+            log.debug("SVM test accuracy of best aligned solution is {}",
+                    svm.getAccuracyOnProvidedSample(svm.getSvm_problem()));
+        }
+
+        hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
+
+        double accuracy = hypothesisScorerIF.computeScore(bestHypothesis, hypotheses.size() + 100, outputDir);
+        String bestHypothesisFile = hypothesisOutputDirectory + "/bestHypothesis.pl";
+        FileReaderUtils.writeFile(bestHypothesisFile,
+                bestHypothesis.getHypothesisDump(), false);
+        log.debug("Logic hypothesis training accuracy of best aligned solution is {}", accuracy);
+
+        hypothesisScorerIF = new TestDataAccuracyEvaluator(hypothesisFactory, propertyManager);
+        accuracy = hypothesisScorerIF.computeScore(bestHypothesis, hypotheses.size() + 200, outputDir);
+        log.debug("Logic hypothesis test accuracy of best aligned solution is {}", accuracy);
+    }
+
+    private KTACalculatorIF centeredKTAScorer(HypothesisScorerIF hypothesisScorerIF) {
+        KTACalculatorIF centeredKTAScorer = null;
+        if (hypothesisScorerIF instanceof CenteredKTAScorer) {
+            centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
+        } else if (hypothesisScorerIF instanceof HybridScorer) {
+            centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
+        }  else if (hypothesisScorerIF instanceof CenteredKTAAndLogAccuracy) {
+            centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
+        }
+        return centeredKTAScorer;
+    }
+
+    private SVM createClassifierForHypothesis(Hypothesis h) {
+        SVM svm = new SVM();
+        svm_problem prob = svm.createProblem(h.getFeaturesAndTargets());
+        svm_parameter params = h.getKernelHelper().getSvm_params();
+        params.svm_type = 0;
+        params.cache_size = 2048;
+        params.C = 1;
+        svm.trainClassifier(prob, h.getKernelHelper().getSvm_params());
+        svm.setSvm_problem(prob);
+        return svm;
+    }
+
+    private Hypothesis printBestHypothesis(String notes) {
         hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
                 .reversed()));
         Hypothesis bestHypothesis = hypotheses.get(0);
@@ -160,6 +203,7 @@ public class PopulationManager {
         log.debug(notes + " -- the best hypothesis below had a score of: " + bestHypothesis.getScore());
         bestHypothesis.getHypothesisDump().forEach(System.out::println);
         bestHypothesis.getHypothesisDump().forEach(log::debug);
+        return bestHypothesis;
     }
 
     private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
@@ -235,14 +279,7 @@ public class PopulationManager {
             return relScores.get(excludedIndex);
         }
         ScoresAndTotal scoresAndTotal = null;
-        KTACalculatorIF centeredKTAScorer = null;
-        if (hypothesisScorerIF instanceof CenteredKTAScorer) {
-            centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
-        } else if (hypothesisScorerIF instanceof HybridScorer) {
-            centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
-        }  else if (hypothesisScorerIF instanceof CenteredKTAAndLogAccuracy) {
-            centeredKTAScorer = (KTACalculatorIF)hypothesisScorerIF;
-        }
+        KTACalculatorIF centeredKTAScorer = centeredKTAScorer(hypothesisScorerIF);
         if (centeredKTAScorer != null) {
             scoresAndTotal = new ScoresAndTotal();
             Hypothesis excluded = hypotheses.get(excludedIndex);

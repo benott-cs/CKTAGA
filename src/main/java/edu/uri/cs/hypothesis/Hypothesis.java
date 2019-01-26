@@ -3,6 +3,8 @@ package edu.uri.cs.hypothesis;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.igormaznitsa.prologparser.terms.*;
 import com.rits.cloning.Cloner;
+import edu.uri.cs.ga.scoring.FeaturesAndTargets;
+import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.parse.HypothesisParser;
 import edu.uri.cs.parse.Language;
 import edu.uri.cs.tree.AndTree;
@@ -25,6 +27,9 @@ public class Hypothesis {
     private boolean isElite = false;
     private double [][] centeredKernelMatrix;
     private Set<String> examples;
+    private FeaturesAndTargets featuresAndTargets;
+    private KernelHelper kernelHelper;
+
     @JsonIgnore
     private Random random = new Random();
     @JsonIgnore
@@ -498,6 +503,22 @@ public class Hypothesis {
         this.examples = examples;
     }
 
+    public KernelHelper getKernelHelper() {
+        return kernelHelper;
+    }
+
+    public void setKernelHelper(KernelHelper kernelHelper) {
+        this.kernelHelper = kernelHelper;
+    }
+
+    public FeaturesAndTargets getFeaturesAndTargets() {
+        return featuresAndTargets;
+    }
+
+    public void setFeaturesAndTargets(FeaturesAndTargets featuresAndTargets) {
+        this.featuresAndTargets = featuresAndTargets;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -518,6 +539,10 @@ public class Hypothesis {
         if (!Arrays.deepEquals(getCenteredKernelMatrix(), that.getCenteredKernelMatrix())) return false;
         if (getExamples() != null ? !getExamples().equals(that.getExamples()) : that.getExamples() != null)
             return false;
+        if (getFeaturesAndTargets() != null ? !getFeaturesAndTargets().equals(that.getFeaturesAndTargets()) : that.getFeaturesAndTargets() != null)
+            return false;
+        if (getKernelHelper() != null ? !getKernelHelper().equals(that.getKernelHelper()) : that.getKernelHelper() != null)
+            return false;
         if (random != null ? !random.equals(that.random) : that.random != null) return false;
         return cloner != null ? cloner.equals(that.cloner) : that.cloner == null;
     }
@@ -535,6 +560,8 @@ public class Hypothesis {
         result = 31 * result + (isElite() ? 1 : 0);
         result = 31 * result + Arrays.deepHashCode(getCenteredKernelMatrix());
         result = 31 * result + (getExamples() != null ? getExamples().hashCode() : 0);
+        result = 31 * result + (getFeaturesAndTargets() != null ? getFeaturesAndTargets().hashCode() : 0);
+        result = 31 * result + (getKernelHelper() != null ? getKernelHelper().hashCode() : 0);
         result = 31 * result + (random != null ? random.hashCode() : 0);
         result = 31 * result + (cloner != null ? cloner.hashCode() : 0);
         return result;

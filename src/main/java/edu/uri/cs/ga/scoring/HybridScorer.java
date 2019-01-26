@@ -4,6 +4,7 @@ import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
+import edu.uri.cs.util.PropertyManager;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -32,5 +33,10 @@ public class HybridScorer implements HypothesisScorerIF, KTACalculatorIF {
 
     public synchronized double computerCKTABetween2CenteredMatrices(double [][] m1, double [][] m2) {
         return centeredKTAScorer.computerCKTABetween2CenteredMatrices(m1, m2);
+    }
+
+    public FeaturesAndTargets createFeatureVectorsForTestData(Hypothesis h, String outputDir,
+                                                              PropertyManager propertyManager) {
+        return centeredKTAScorer.createFeatureVectorsForTestData(h, outputDir, propertyManager);
     }
 }

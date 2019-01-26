@@ -27,4 +27,8 @@ public class KernelHelper {
     public double computeKernel(double[] vec1, double[] vec2) {
         return kernelComputations.kernel_function(vec1, vec2);
     }
+
+    public svm_parameter getSvm_params() {
+        return svm_params;
+    }
 }

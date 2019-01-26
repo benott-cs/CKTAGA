@@ -1,23 +1,26 @@
 package edu.uri.cs.ga.scoring;
 
+import com.sun.xml.internal.ws.binding.FeatureListUtil;
 import edu.uri.cs.aleph.HypothesisFactory;
 import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.util.FileReaderUtils;
+import edu.uri.cs.util.PropertyManager;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Ben on 12/11/18.
  */
 @Slf4j
 public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
+
     private HypothesisFactory hypothesisFactory;
     private CommandLineOutputParser outputParser;
     private KernelHelper kernelHelper;
-    private boolean verbose = false;
 
     public CenteredKTAScorer(HypothesisFactory hypothesisFactory, KernelHelper kernelHelper) {
         this.hypothesisFactory = hypothesisFactory;
@@ -72,6 +75,8 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             h.setScore(computeAccuracy(size, hypothesisDump.size(), targetMatrix, kernelMatrix));
             h.setCenteredKernelMatrix(kernelMatrix);
             h.setExamples(outputParser.coveredClauses.keySet());
+            h.setFeaturesAndTargets(new FeaturesAndTargets(outputParser.coveredClauses, outputParser.targets));
+            h.setKernelHelper(kernelHelper);
         } else {
             // there were either no clauses or the clauses which existed had all most
             // general literals in them with no variables matching the head of the clause;
@@ -79,6 +84,60 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             h.setScore(0.0);
         }
         return h.getScore();
+    }
+
+    public FeaturesAndTargets createFeatureVectorsForTestData(Hypothesis h, String outputDir,
+                                                              PropertyManager propertyManager) {
+        String testDataFile = propertyManager.getProperty(PropertyManager.CRKTAGA_TEST_DATA_FILE);
+        if (Objects.nonNull(testDataFile)) {
+            String posSampleToken = propertyManager.getProperty(PropertyManager.CRKTAGA_TEST_DATA_POS_TOKEN);
+            String negSampleToken = propertyManager.getProperty(PropertyManager.CRKTAGA_TEST_DATA_NEG_TOKEN);
+            List<String> allTestData = new ArrayList<>();
+            FileReaderUtils.readInStringLinesFromFile(testDataFile, allTestData);
+            List<String> positiveSamples = allTestData.stream().filter(t -> t.startsWith(posSampleToken))
+                    .map(t -> t.replaceAll(posSampleToken, "")).collect(Collectors.toList());
+            List<String> negativeSamples = allTestData.stream().filter(t -> t.startsWith(negSampleToken))
+                    .map(t -> t.replaceAll(negSampleToken, "")).collect(Collectors.toList());
+            List<String> hypothesisDump = h.getHypothesisDump();
+            List<String> tmp = new ArrayList<>();
+            int i = 0;
+            outputParser = new CommandLineOutputParser(false);
+            for (String clause : hypothesisDump) {
+                tmp.clear();
+                tmp.add(clause);
+                String hypothesisOutputFile = outputDir + "/hypothesis_FINAL_clause_" + i + ".pl";
+                FileReaderUtils.writeFile(hypothesisOutputFile,
+                        tmp, false);
+
+                // 2 - evaluate positive and parse output
+                if (!positiveSamples.isEmpty()) {
+                    outputParser.setNegate(false);
+                    outputParser.completed = false;
+                    String posFileName = outputDir + "/pos_samples.txt";
+                    FileReaderUtils.writeFile(posFileName, positiveSamples, false);
+                    hypothesisFactory.evaluateFinal(hypothesisOutputFile, posFileName, outputParser);
+                }
+
+                // 3 - evaluate negative and parse output
+                if (!negativeSamples.isEmpty()) {
+                    outputParser.setNegate(true);
+                    outputParser.completed = false;
+                    String negFileName = outputDir + "/neg_samples.txt";
+                    FileReaderUtils.writeFile(negFileName, negativeSamples, false);
+                    hypothesisFactory.evaluateFinal(hypothesisOutputFile, negFileName, outputParser);
+                }
+                i++;
+            }
+
+            try {
+                validateParser(outputParser, hypothesisDump.size());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return new FeaturesAndTargets(outputParser.coveredClauses, outputParser.targets);
+        } else {
+            return null;
+        }
     }
 
     private synchronized double computeAccuracy(int size, int numClauses, double[][] targetMatrix, double[][] kernelMatrix) {
@@ -261,6 +320,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
     private static double UNCOVERED = 0.0;
     private class CommandLineOutputParser implements ConsumerWithEnd<String> {
 
+        // The coveredClauses variable contains the feature vectors
         TreeMap<String, ArrayList<Double>> coveredClauses = new TreeMap<>();
         TreeMap<String, Double> targets = new TreeMap<>();
         private static final String COVERED_STRING = "covered]";
