@@ -1,7 +1,5 @@
 package edu.uri.cs.classifier;
 
-import edu.uri.cs.ga.scoring.FeaturesAndTargets;
-import edu.uri.cs.hypothesis.Hypothesis;
 import libsvm.*;
 
 import java.util.ArrayList;

@@ -3,7 +3,7 @@ package edu.uri.cs.hypothesis;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.igormaznitsa.prologparser.terms.*;
 import com.rits.cloning.Cloner;
-import edu.uri.cs.ga.scoring.FeaturesAndTargets;
+import edu.uri.cs.classifier.FeaturesAndTargets;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.parse.HypothesisParser;
 import edu.uri.cs.parse.Language;

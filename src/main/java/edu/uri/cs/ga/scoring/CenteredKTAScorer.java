@@ -1,7 +1,7 @@
 package edu.uri.cs.ga.scoring;
 
-import com.sun.xml.internal.ws.binding.FeatureListUtil;
 import edu.uri.cs.aleph.HypothesisFactory;
+import edu.uri.cs.classifier.FeaturesAndTargets;
 import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;
 import edu.uri.cs.ga.scoring.kernel.KernelHelper;
 import edu.uri.cs.hypothesis.Hypothesis;

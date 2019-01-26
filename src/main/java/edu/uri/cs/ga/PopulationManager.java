@@ -3,6 +3,7 @@ package edu.uri.cs.ga;
 import com.igormaznitsa.prologparser.terms.PrologStructure;
 import com.rits.cloning.Cloner;
 import edu.uri.cs.aleph.HypothesisFactory;
+import edu.uri.cs.classifier.FeaturesAndTargets;
 import edu.uri.cs.classifier.SVM;
 import edu.uri.cs.ga.scoring.*;
 import edu.uri.cs.ga.scoring.kernel.KTACalculatorIF;

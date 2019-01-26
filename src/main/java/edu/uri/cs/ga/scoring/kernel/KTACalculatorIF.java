@@ -1,6 +1,6 @@
 package edu.uri.cs.ga.scoring.kernel;
 
-import edu.uri.cs.ga.scoring.FeaturesAndTargets;
+import edu.uri.cs.classifier.FeaturesAndTargets;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.util.PropertyManager;
 

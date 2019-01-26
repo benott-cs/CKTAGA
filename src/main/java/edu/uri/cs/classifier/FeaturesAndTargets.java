@@ -1,4 +1,4 @@
-package edu.uri.cs.ga.scoring;
+package edu.uri.cs.classifier;
 
 import java.util.ArrayList;
 import java.util.Map;
