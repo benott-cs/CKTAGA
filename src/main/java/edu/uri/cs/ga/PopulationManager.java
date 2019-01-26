@@ -156,7 +156,7 @@ public class PopulationManager {
                     centeredKTAScorer.createFeatureVectorsForTestData(bestHypothesis, outputDir, propertyManager);
             svm_problem prob = svm.createProblem(testFeatures);
             log.debug("SVM test accuracy of best aligned solution is {}",
-                    svm.getAccuracyOnProvidedSample(svm.getSvm_problem()));
+                    svm.getAccuracyOnProvidedSample(prob));
         }
 
         hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
