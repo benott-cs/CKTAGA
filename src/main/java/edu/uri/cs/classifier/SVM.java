@@ -13,6 +13,7 @@ public class SVM {
 
     private svm_model svm_model = null;
     private svm_problem svm_problem = null;
+    private double cVal = 1.0;
 
     public SVM() {
     }
@@ -36,11 +37,12 @@ public class SVM {
 
     public void trainClassifier(svm_problem problem, svm_parameter svm_params) {
         if (Objects.nonNull(problem)) {
+            this.cVal = svm_params.C;
             svm_model = svm.svm_train(problem, svm_params);
         }
     }
 
-    public svm_problem createProblem(FeaturesAndTargets featuresAndTargets) {
+    public static svm_problem createProblem(FeaturesAndTargets featuresAndTargets) {
         Map<String, ArrayList<Double>> featureVectors = featuresAndTargets.getFeatureVectors();
         Map<String, Double> targets = featuresAndTargets.getTargets();
         if (featureVectors.size() != targets.size()) {
@@ -76,5 +78,9 @@ public class SVM {
 
     public void setSvm_problem(libsvm.svm_problem svm_problem) {
         this.svm_problem = svm_problem;
+    }
+
+    public double getcVal() {
+        return cVal;
     }
 }

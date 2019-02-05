@@ -6,12 +6,20 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 /**
  * Created by Ben on 7/26/18.
  */
 public class PropertyManager {
+
+    public static final String CRKTAGA_NO_GA_READ_PREV_BEST = "crktaga.do.not.run.ga.read.in.prev.best";
+    public static final String CRKTAGA_PREV_BEST_FILE = "crktaga.path.to.prev.best";
+    public static final String CRKTAGA_SVM_C_VALUES = "crktaga.svm.c.values";
 
     public static final String CRKTAGA_BACKGROUND_FILE = "crktaga.background.file";
     public static final String ALEPH_BACKGROUND_FILE = "aleph.background.file";
@@ -95,5 +103,17 @@ public class PropertyManager {
 
     public ScoringType getScoringType() {
         return ScoringType.from(Integer.valueOf(getProperty(SCORING_TYPE)));
+    }
+
+    public List<Double> getSVMCValues() {
+        String[] stringCs = getProperty(CRKTAGA_SVM_C_VALUES).split(",");
+        List<Double> ret;
+        if (stringCs.length != 0) {
+            ret = Arrays.stream(stringCs).map(s -> Double.valueOf(s)).collect(Collectors.toList());
+        } else {
+            ret = new ArrayList<>();
+            ret.add(1.0);
+        }
+        return ret;
     }
 }

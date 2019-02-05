@@ -10,6 +10,7 @@ public class Logenpro {
     private PropertyManager propertyManager;
     private PopulationManager populationManager;
     private int populationSize = 0;
+    private boolean runGA = true;
 
     public Logenpro(PropertyManager propertyManager) {
         this.propertyManager = propertyManager;
@@ -20,7 +21,10 @@ public class Logenpro {
                 propertyManager);
         setPopulationSize(propertyManager.getProperty(PropertyManager.CRKTAGA_POPULATION_SIZE));
         populationManager.initialize();
-        populationManager.createInitialPopulation(populationSize);
+        runGA = !propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_NO_GA_READ_PREV_BEST);
+        if (runGA) {
+            populationManager.createInitialPopulation(populationSize);
+        }
     }
 
     private void setPopulationSize(String s) {
@@ -32,7 +36,11 @@ public class Logenpro {
     }
 
     public void evolve() {
-        populationManager.runGA();
+        if (runGA) {
+            populationManager.runGA();
+        } else {
+            populationManager.evaluatePreviousBest(propertyManager.getProperty(PropertyManager.CRKTAGA_PREV_BEST_FILE));
+        }
     }
 
 }

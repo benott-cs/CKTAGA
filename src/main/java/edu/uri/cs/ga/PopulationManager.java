@@ -145,18 +145,28 @@ public class PopulationManager {
         evaluateBestHypothesis(bestHypothesis);
     }
 
+    public void evaluatePreviousBest(String prevBestFileName) {
+        readHypothesisFromFile(prevBestFileName);
+        scoreHypotheses();
+        evaluateBestHypothesis(hypotheses.get(0));
+    }
+
     private void evaluateBestHypothesis(Hypothesis bestHypothesis) {
         String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
         KTACalculatorIF centeredKTAScorer = centeredKTAScorer(hypothesisScorerIF);
         if (Objects.nonNull(centeredKTAScorer)) {
-            SVM svm = createClassifierForHypothesis(bestHypothesis);
-            log.debug("SVM training accuracy of best aligned solution is {}",
-                    svm.getAccuracyOnProvidedSample(svm.getSvm_problem()));
+            List<SVM> svms = createClassifierForHypothesis(bestHypothesis);
+            for (SVM svm : svms) {
+                log.debug("SVM training accuracy of best aligned solution is {} with C-val {}",
+                        svm.getAccuracyOnProvidedSample(svm.getSvm_problem()), svm.getcVal());
+            }
             FeaturesAndTargets testFeatures =
                     centeredKTAScorer.createFeatureVectorsForTestData(bestHypothesis, outputDir, propertyManager);
-            svm_problem prob = svm.createProblem(testFeatures);
-            log.debug("SVM test accuracy of best aligned solution is {}",
-                    svm.getAccuracyOnProvidedSample(prob));
+            svm_problem prob = SVM.createProblem(testFeatures);
+            for (SVM svm : svms) {
+                log.debug("SVM test accuracy of best aligned solution is {} with C-val {}",
+                        svm.getAccuracyOnProvidedSample(prob), svm.getcVal());
+            }
         }
 
         hypothesisScorerIF = new AlephAccuracyScorer(hypothesisFactory, false);
@@ -184,16 +194,20 @@ public class PopulationManager {
         return centeredKTAScorer;
     }
 
-    private SVM createClassifierForHypothesis(Hypothesis h) {
-        SVM svm = new SVM();
-        svm_problem prob = svm.createProblem(h.getFeaturesAndTargets());
-        svm_parameter params = h.getKernelHelper().getSvm_params();
-        params.svm_type = 0;
-        params.cache_size = 2048;
-        params.C = 1;
-        svm.trainClassifier(prob, h.getKernelHelper().getSvm_params());
-        svm.setSvm_problem(prob);
-        return svm;
+    private List<SVM> createClassifierForHypothesis(Hypothesis h) {
+        List<SVM> ret = new ArrayList<>();
+        for (double cval : propertyManager.getSVMCValues()) {
+            SVM svm = new SVM();
+            svm_problem prob = SVM.createProblem(h.getFeaturesAndTargets());
+            svm_parameter params = h.getKernelHelper().getSvm_params();
+            params.svm_type = 0;
+            params.cache_size = 2048;
+            params.C = cval;
+            svm.trainClassifier(prob, h.getKernelHelper().getSvm_params());
+            svm.setSvm_problem(prob);
+            ret.add(svm);
+        }
+        return ret;
     }
 
     private Hypothesis printBestHypothesis(String notes) {
