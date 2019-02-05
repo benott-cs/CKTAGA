@@ -45,7 +45,7 @@ public class PopulationManager {
     private Cloner cloner = new Cloner();
     private Random rand = new Random();
     private MutationHandler mutationHandler;
-    private static int currentGeneration = 0;
+    private static long currentGeneration = 0;
     private Map<Integer, ScoresAndTotal> relScores = new HashMap<>();
     private HypothesisScorerFactory hypothesisScorerFactory = new HypothesisScorerFactory();
     private boolean diversityBoost = false;
@@ -148,6 +148,8 @@ public class PopulationManager {
     public void evaluatePreviousBest(String prevBestFileName) {
         readHypothesisFromFile(prevBestFileName);
         scoreHypotheses();
+        // Ensure no overlap with the previous runs output
+        currentGeneration = System.currentTimeMillis();
         evaluateBestHypothesis(hypotheses.get(0));
     }
 
