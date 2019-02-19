@@ -7,6 +7,7 @@ import com.igormaznitsa.prologparser.terms.PrologVariable;
 import edu.uri.cs.hypothesis.ClauseContainingType;
 import edu.uri.cs.hypothesis.Hypothesis;
 import edu.uri.cs.tree.AndTree;
+import edu.uri.cs.tree.OrTree;
 import edu.uri.cs.util.PropertyManager;
 
 import java.util.ArrayList;
@@ -121,12 +122,26 @@ public class MutationHandler {
                     PrologAtom prologAtom = h.getRandomPrologAtom(atomIgnorePattern);
                     // Get an and tree
                     AndTree andTree = h.getValueForMthStructure(h.getRandomRule()).getRandomChildExpression();
+                    boolean isNewClause = false;
+                    // 10 % of the time, just create a new clause
+                    // TODO - make this number configurable, possibly decaying as
+                    //        the run progresses
+                    // Also, if the andTree is null, a new clause is required
+                    if (Objects.isNull(andTree) || Math.random() < 0.1) {
+                        andTree = new AndTree();
+                        isNewClause = true;
+                    }
                     // note that we only add negative literals because we only support
                     // Horn clauses; note that negative literals are equivalent to those
                     // appearing in the body of the clause
                     PrologStructure newLiteral = getPrologStructureFromAtom(prologAtom);
                     andTree.addIterm(newLiteral);
                     andTree.generateTree();
+                    if (isNewClause) {
+                        OrTree headToAddTo = h.getValueForMthStructure(h.getRandomRule());
+                        headToAddTo.addIterm(andTree);
+                        headToAddTo.generateTree();
+                    }
                     success = true;
                     break;
                 default:
@@ -183,7 +198,7 @@ public class MutationHandler {
                 case LITERAL_REMOVAL:
                     // Get an and tree
                     AndTree andTree = h.getValueForMthStructure(h.getRandomRule()).getRandomChildExpression();
-                    if (andTree.getAllChildExpressions().size() > 0) {
+                    if (andTree.getAllChildExpressions().size() > 1) {
                         PrologStructure literalToRemove = andTree.getRandomChildExpression();
                         andTree.removeTreeItem(literalToRemove);
                         andTree.generateTree();
