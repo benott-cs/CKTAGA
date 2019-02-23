@@ -159,14 +159,14 @@ public class PopulationManager {
         if (Objects.nonNull(centeredKTAScorer)) {
             List<SVM> svms = createClassifierForHypothesis(bestHypothesis);
             for (SVM svm : svms) {
-                log.debug("SVM training accuracy of best aligned solution is {} with C-val {}",
+                log.info("SVM training accuracy of best aligned solution is {} with C-val {}",
                         svm.getAccuracyOnProvidedSample(svm.getSvm_problem()), svm.getcVal());
             }
             FeaturesAndTargets testFeatures =
                     centeredKTAScorer.createFeatureVectorsForTestData(bestHypothesis, outputDir, propertyManager);
             svm_problem prob = SVM.createProblem(testFeatures);
             for (SVM svm : svms) {
-                log.debug("SVM test accuracy of best aligned solution is {} with C-val {}",
+                log.info("SVM test accuracy of best aligned solution is {} with C-val {}",
                         svm.getAccuracyOnProvidedSample(prob), svm.getcVal());
             }
         }
@@ -177,11 +177,11 @@ public class PopulationManager {
         String bestHypothesisFile = hypothesisOutputDirectory + "/bestHypothesis.pl";
         FileReaderUtils.writeFile(bestHypothesisFile,
                 bestHypothesis.getHypothesisDump(), false);
-        log.debug("Logic hypothesis training accuracy of best aligned solution is {}", accuracy);
+        log.info("Logic hypothesis training accuracy of best aligned solution is {}", accuracy);
 
         hypothesisScorerIF = new TestDataAccuracyEvaluator(hypothesisFactory, propertyManager);
         accuracy = hypothesisScorerIF.computeScore(bestHypothesis, hypotheses.size() + 200, outputDir);
-        log.debug("Logic hypothesis test accuracy of best aligned solution is {}", accuracy);
+        log.info("Logic hypothesis test accuracy of best aligned solution is {}", accuracy);
     }
 
     private KTACalculatorIF centeredKTAScorer(HypothesisScorerIF hypothesisScorerIF) {
@@ -219,7 +219,7 @@ public class PopulationManager {
         System.out.println(notes + " -- the best hypothesis below had a score of: " + bestHypothesis.getScore());
         log.debug(notes + " -- the best hypothesis below had a score of: " + bestHypothesis.getScore());
         bestHypothesis.getHypothesisDump().forEach(System.out::println);
-        bestHypothesis.getHypothesisDump().forEach(log::debug);
+        bestHypothesis.getHypothesisDump().forEach(log::info);
         return bestHypothesis;
     }
 

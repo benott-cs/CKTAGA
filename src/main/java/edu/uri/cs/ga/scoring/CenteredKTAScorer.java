@@ -163,9 +163,9 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
     public synchronized double computerCKTABetween2CenteredMatrices(double[][] m1, double[][] m2) {
         if (m1.length != m2.length || m1.length == 0 || m2.length == 0 || m1[0].length != m2[0].length ||
                 m1.length != m1[0].length || m2.length != m2[0].length) {
-            log.debug("Invalid matrices provided for CKTA score");
-            log.debug("m1 is: {}", m1);
-            log.debug("m2 is: {}", m2);
+            log.error("Invalid matrices provided for CKTA score");
+            log.error("m1 is: {}", m1);
+            log.error("m2 is: {}", m2);
             throw new IllegalArgumentException("Matrices did not have correct lengths!");
         }
         double numer = compute_frobenius_product(m1, m2);
@@ -263,7 +263,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             targetVec[k] = outputParser.targets.get(key);
             featureVecMatrix[k] = outputParser.coveredClauses.get(key).
                     stream().mapToDouble(Double::doubleValue).toArray();
-            log.debug("feature vec for {} is {} with target {}", key, featureVecMatrix[k], targetVec[k]);
+            log.info("feature vec for {} is {} with target {}", key, featureVecMatrix[k], targetVec[k]);
             k++;
         }
         for (int i = 0; i < size; i++) {

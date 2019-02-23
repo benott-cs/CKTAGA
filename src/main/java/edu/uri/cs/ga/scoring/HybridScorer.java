@@ -27,7 +27,7 @@ public class HybridScorer implements HypothesisScorerIF, KTACalculatorIF {
         double centeredKTAScore = centeredKTAScorer.computeScore(h, hypothesisNumber, outputDir);
         double accuracyScore = alephAccuracyScorer.computeScore(h, hypothesisNumber, outputDir);
         h.setScore(centeredKTAScore * accuracyScore);
-        log.debug("Hypothesis {} from gen {} had HybridScore, Accuracy of {}, {}", hypothesisNumber,
+        log.info("Hypothesis {} from gen {} had HybridScore, Accuracy of {}, {}", hypothesisNumber,
                 outputDir, h.getScore(), accuracyScore);
         return h.getScore();
     }
