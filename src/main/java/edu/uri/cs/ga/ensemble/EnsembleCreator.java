@@ -95,9 +95,13 @@ public class EnsembleCreator {
 
     private HashMap<Hypothesis, SVM> makeEnsembleClassifier() {
         HashMap<Hypothesis, SVM> bestSVMForHypothesis = new HashMap<>();
+        int i = 0;
         for (Hypothesis member : members) {
-            SVM svmWithBestCValues = getBestSVMForHypothesis(member);
-            bestSVMForHypothesis.put(member, svmWithBestCValues);
+            SVM svmWithBestCValue = getBestSVMForHypothesis(member);
+            bestSVMForHypothesis.put(member, svmWithBestCValue);
+            log.info("=========================");
+            log.info("Hypothesis {} in ensemble", i); i++;
+            member.getHypothesisDump().forEach(log::info);
         }
         return bestSVMForHypothesis;
     }
