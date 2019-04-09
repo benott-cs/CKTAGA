@@ -77,10 +77,9 @@ public class EnsembleCreator {
 
     public HashMap<Integer, EnsemblePrediction> evaluateEnsemble(HashMap<Hypothesis, SVM> ensemble) {
         HashMap<Integer, EnsemblePrediction> ret = new HashMap<>();
-        int i = 0;
         for (Hypothesis key : ensemble.keySet()) {
             log.info("=========================");
-            log.info("Hypothesis {} in ensemble", i); i++;
+            log.info("Hypothesis {} in ensemble", key.getHypothesisFile());
             key.getHypothesisDump().forEach(log::info);
             FeaturesAndTargets testFeatures =
                     populationManager.getTestFeatureVectors(key);
