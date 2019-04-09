@@ -72,7 +72,7 @@ public class EnsembleCreator {
             totalCorrect += (isPositive == pred.isPositive) ? 1 : 0;
         }
         double accuracy = totalCorrect / totalSamples;
-        log.info("SVM ensemble test accuracy is {}. {} out of ", accuracy);
+        log.info("SVM ensemble test accuracy is {}. {} out of {}", accuracy, totalCorrect, totalSamples);
     }
 
     public HashMap<Integer, EnsemblePrediction> evaluateEnsemble(HashMap<Hypothesis, SVM> ensemble) {
