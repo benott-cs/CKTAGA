@@ -77,9 +77,14 @@ public class EnsembleCreator {
 
     public HashMap<Integer, EnsemblePrediction> evaluateEnsemble(HashMap<Hypothesis, SVM> ensemble) {
         HashMap<Integer, EnsemblePrediction> ret = new HashMap<>();
+        int i = 0;
         for (Hypothesis key : ensemble.keySet()) {
+            log.info("=========================");
+            log.info("Hypothesis {} in ensemble", i); i++;
+            key.getHypothesisDump().forEach(log::info);
             FeaturesAndTargets testFeatures =
                     populationManager.getTestFeatureVectors(key);
+            printFeaturesAndTargets(testFeatures);
             svm_problem prob = SVM.createProblem(testFeatures);
             HashMap<Integer, SVM.SVMResult> res = ensemble.get(key).getPredicationForSVM(prob);
             for (Integer sample : res.keySet()) {
@@ -93,15 +98,21 @@ public class EnsembleCreator {
         return ret;
     }
 
+    private void printFeaturesAndTargets(FeaturesAndTargets fat) {
+        Map<String, ArrayList<Double>> features = fat.getFeatureVectors();
+        Map<String, ArrayList<Double>> targets = fat.getFeatureVectors();
+        for (String key : features.keySet()) {
+            if (targets.containsKey(key)) {
+                log.info("test feature vec for {} is {} with target {}", key, features.get(key), targets.get(key));
+            }
+        }
+    }
+
     private HashMap<Hypothesis, SVM> makeEnsembleClassifier() {
         HashMap<Hypothesis, SVM> bestSVMForHypothesis = new HashMap<>();
-        int i = 0;
         for (Hypothesis member : members) {
             SVM svmWithBestCValue = getBestSVMForHypothesis(member);
             bestSVMForHypothesis.put(member, svmWithBestCValue);
-            log.info("=========================");
-            log.info("Hypothesis {} in ensemble", i); i++;
-            member.getHypothesisDump().forEach(log::info);
         }
         return bestSVMForHypothesis;
     }
