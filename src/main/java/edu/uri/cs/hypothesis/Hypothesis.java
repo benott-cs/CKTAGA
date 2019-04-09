@@ -46,6 +46,10 @@ public class Hypothesis {
         this.hypothesisFile = hypothesisFile;
     }
 
+    public String getHypothesisFile() {
+        return hypothesisFile;
+    }
+
     public HashMap<PrologStructure, OrTree> getHypothesis() {
         return hypothesis;
     }
