@@ -100,7 +100,7 @@ public class EnsembleCreator {
 
     private void printFeaturesAndTargets(FeaturesAndTargets fat) {
         Map<String, ArrayList<Double>> features = fat.getFeatureVectors();
-        Map<String, ArrayList<Double>> targets = fat.getFeatureVectors();
+        Map<String, Double> targets = fat.getTargets();
         for (String key : features.keySet()) {
             if (targets.containsKey(key)) {
                 log.info("test feature vec for {} is {} with target {}", key, features.get(key), targets.get(key));
