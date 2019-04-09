@@ -140,8 +140,9 @@ public class EnsembleCreator {
                 candidates.remove(nextBest);
             }
             members.add(nextBest);
+            double adjustedScore = (Objects.isNull(nextBest.getAdjustedScore()) ? nextBest.getScore() : nextBest.getAdjustedScore());
             log.info("Hypothesis {} with score {} and adjusted score {} has been added to the ensemble",
-                    nextBest.getHypothesisFile(), nextBest.getScore(), nextBest.getAdjustedScore());
+                    nextBest.getHypothesisFile(), nextBest.getScore(), adjustedScore);
             adjustScoresDueToAddition(nextBest);
         }
     }
