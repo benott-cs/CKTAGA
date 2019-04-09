@@ -1,5 +1,6 @@
 package edu.uri.cs.ga;
 
+import edu.uri.cs.ga.ensemble.EnsembleCreator;
 import edu.uri.cs.util.PropertyManager;
 
 /**
@@ -9,8 +10,11 @@ public class Logenpro {
 
     private PropertyManager propertyManager;
     private PopulationManager populationManager;
+    private EnsembleCreator ensembleCreator;
     private int populationSize = 0;
     private boolean runGA = true;
+    private boolean ensemble = false;
+    private boolean naiveEnsemble = false;
 
     public Logenpro(PropertyManager propertyManager) {
         this.propertyManager = propertyManager;
@@ -22,9 +26,11 @@ public class Logenpro {
         setPopulationSize(propertyManager.getProperty(PropertyManager.CRKTAGA_POPULATION_SIZE));
         populationManager.initialize();
         runGA = !propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_NO_GA_READ_PREV_BEST);
+        ensemble = propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_CREATE_ENSEMBLE);
         if (runGA) {
             populationManager.createInitialPopulation(populationSize);
         }
+        ensembleCreator = new EnsembleCreator(populationManager, propertyManager);
     }
 
     private void setPopulationSize(String s) {
@@ -38,8 +44,10 @@ public class Logenpro {
     public void evolve() {
         if (runGA) {
             populationManager.runGA();
-        } else {
+        } else if (!ensemble) {
             populationManager.evaluatePreviousBest(propertyManager.getProperty(PropertyManager.CRKTAGA_PREV_BEST_FILE));
+        } else if (ensemble) {
+            ensembleCreator.createEnsemble();
         }
     }
 

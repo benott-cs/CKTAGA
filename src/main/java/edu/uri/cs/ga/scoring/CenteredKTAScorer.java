@@ -83,6 +83,7 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             // hence, there basically was no hypothesis - we will score this with a zero
             h.setScore(0.0);
         }
+        h.setAlignmentWithTarget(h.getScore());
         return h.getScore();
     }
 

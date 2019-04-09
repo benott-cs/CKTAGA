@@ -45,7 +45,7 @@ public class PopulationManager {
     private Cloner cloner = new Cloner();
     private Random rand = new Random();
     private MutationHandler mutationHandler;
-    private static long currentGeneration = 0;
+    public static long currentGeneration = 0;
     private Map<Integer, ScoresAndTotal> relScores = new HashMap<>();
     private HypothesisScorerFactory hypothesisScorerFactory = new HypothesisScorerFactory();
     private boolean diversityBoost = false;
@@ -145,12 +145,30 @@ public class PopulationManager {
         evaluateBestHypothesis(bestHypothesis);
     }
 
+    // TODO - thoughts
+    //   1) read in from multiple separate parameter selections? Not yet. First pass will just use best params.
+    //   2) should this be a new class? Hmmm... yes?
+    //   3) search over all kernel params for each candidate for ensemble? No. However, I think this will help (future work).
+    //   4) configurable top x for candidate and y for ensemble (y <= x). Yes.
+    //   5) parameter for naive top y vs diverse top y (yes)
+
     public void evaluatePreviousBest(String prevBestFileName) {
         readHypothesisFromFile(prevBestFileName);
         scoreHypotheses();
         // Ensure no overlap with the previous runs output
         currentGeneration = System.currentTimeMillis();
         evaluateBestHypothesis(hypotheses.get(0));
+    }
+
+    public FeaturesAndTargets getTestFeatureVectors(Hypothesis h) {
+        FeaturesAndTargets testFeatures = null;
+        String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
+        KTACalculatorIF centeredKTAScorer = centeredKTAScorer(hypothesisScorerIF);
+        if (Objects.nonNull(centeredKTAScorer)) {
+            testFeatures =
+                    centeredKTAScorer.createFeatureVectorsForTestData(h, outputDir, propertyManager);
+        }
+        return testFeatures;
     }
 
     private void evaluateBestHypothesis(Hypothesis bestHypothesis) {
@@ -196,7 +214,7 @@ public class PopulationManager {
         return centeredKTAScorer;
     }
 
-    private List<SVM> createClassifierForHypothesis(Hypothesis h) {
+    public List<SVM> createClassifierForHypothesis(Hypothesis h) {
         List<SVM> ret = new ArrayList<>();
         for (double cval : propertyManager.getSVMCValues()) {
             SVM svm = new SVM();
@@ -213,14 +231,30 @@ public class PopulationManager {
     }
 
     private Hypothesis printBestHypothesis(String notes) {
-        hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
-                .reversed()));
+        sortHypothesesOrderedByDescendingScore();
         Hypothesis bestHypothesis = hypotheses.get(0);
         System.out.println(notes + " -- the best hypothesis below had a score of: " + bestHypothesis.getScore());
         log.debug(notes + " -- the best hypothesis below had a score of: " + bestHypothesis.getScore());
         bestHypothesis.getHypothesisDump().forEach(System.out::println);
         bestHypothesis.getHypothesisDump().forEach(log::info);
         return bestHypothesis;
+    }
+
+    public ArrayList<Hypothesis> getTopNHypotheses(int n) {
+        sortHypothesesOrderedByDescendingScore();
+        ArrayList<Hypothesis> topN = new ArrayList<>();
+        for (int i = 0 ; i < n; i++) {
+            topN.add(cloner.deepClone(hypotheses.get(i)));
+        }
+        // ensure that the list is also sorted
+        topN.sort((Comparator.comparing(Hypothesis::getScore)
+                .reversed()));
+        return topN;
+    }
+
+    public void sortHypothesesOrderedByDescendingScore() {
+        hypotheses.sort((Comparator.comparing(Hypothesis::getScore)
+                .reversed()));
     }
 
     private void addEliteMembersToNextGen(int numberOfEliteHypotheses, List<Hypothesis> nextGen) {
@@ -245,7 +279,7 @@ public class PopulationManager {
         }
     }
 
-    private boolean scoreHypotheses() {
+    public boolean scoreHypotheses() {
         boolean ret = false;
         String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
         int i = 0;
@@ -303,19 +337,10 @@ public class PopulationManager {
             for (int i = 0; i < hypotheses.size(); i++) {
                 if (i != excludedIndex) {
                     Hypothesis h = hypotheses.get(i);
-                    Set<String> intersect = new HashSet<>(excluded.getExamples());
-                    intersect.retainAll(h.getExamples());
-                    boolean ok = (h.getExamples().size() == intersect.size());
-                    if (ok) {
-                        double alignmentBetweenHypotheses =
-                                centeredKTAScorer.
-                                        computerCKTABetween2CenteredMatrices(excluded.getCenteredKernelMatrix(),
-                                                h.getCenteredKernelMatrix());
-                        double adjustedScore = h.getScore() / alignmentBetweenHypotheses;
-                        scoresAndTotal.totalFitness += adjustedScore;
-                    } else {
-                        throw new IllegalStateException("hypotheses had different example sets!");
-                    }
+                    double alignmentBetweenHypotheses =
+                            computeCenteredCKTABetweenHypotheses(h, excluded);
+                    double adjustedScore = h.getScore() / alignmentBetweenHypotheses;
+                    scoresAndTotal.totalFitness += adjustedScore;
                     scoresAndTotal.partialSumsForSelection.add(scoresAndTotal.totalFitness);
                 } else {
                     scoresAndTotal.totalFitness += 1.0;
@@ -325,6 +350,24 @@ public class PopulationManager {
             relScores.put(excludedIndex, scoresAndTotal);
         }
         return scoresAndTotal;
+    }
+
+    public double computeCenteredCKTABetweenHypotheses(Hypothesis h1, Hypothesis h2) {
+        double ret = 0.0;
+        KTACalculatorIF centeredKTAScorer = centeredKTAScorer(hypothesisScorerIF);
+        if (Objects.nonNull(centeredKTAScorer)) {
+            Set<String> intersect = new HashSet<>(h1.getExamples());
+            intersect.retainAll(h2.getExamples());
+            boolean ok = (h2.getExamples().size() == intersect.size());
+            if (ok) {
+                ret = centeredKTAScorer.
+                        computerCKTABetween2CenteredMatrices(h1.getCenteredKernelMatrix(),
+                                h2.getCenteredKernelMatrix());
+            } else {
+                throw new IllegalStateException("hypotheses had different example sets!");
+            }
+        }
+        return ret;
     }
 
     private void mutateChildren(List<Hypothesis> children) {

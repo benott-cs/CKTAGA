@@ -29,6 +29,8 @@ public class Hypothesis {
     private Set<String> examples;
     private FeaturesAndTargets featuresAndTargets;
     private KernelHelper kernelHelper;
+    private Double adjustedScore = null;
+    private double alignmentWithTarget = 1.0;
 
     @JsonIgnore
     private Random random = new Random();
@@ -519,6 +521,22 @@ public class Hypothesis {
         this.featuresAndTargets = featuresAndTargets;
     }
 
+    public Double getAdjustedScore() {
+        return adjustedScore;
+    }
+
+    public void setAdjustedScore(Double adjustedScore) {
+        this.adjustedScore = adjustedScore;
+    }
+
+    public double getAlignmentWithTarget() {
+        return alignmentWithTarget;
+    }
+
+    public void setAlignmentWithTarget(double alignmentWithTarget) {
+        this.alignmentWithTarget = alignmentWithTarget;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -528,6 +546,7 @@ public class Hypothesis {
 
         if (Double.compare(that.getScore(), getScore()) != 0) return false;
         if (isElite() != that.isElite()) return false;
+        if (Double.compare(that.getAlignmentWithTarget(), getAlignmentWithTarget()) != 0) return false;
         if (backgroundLanguage != null ? !backgroundLanguage.equals(that.backgroundLanguage) : that.backgroundLanguage != null)
             return false;
         if (hypothesisFile != null ? !hypothesisFile.equals(that.hypothesisFile) : that.hypothesisFile != null)
@@ -542,6 +561,8 @@ public class Hypothesis {
         if (getFeaturesAndTargets() != null ? !getFeaturesAndTargets().equals(that.getFeaturesAndTargets()) : that.getFeaturesAndTargets() != null)
             return false;
         if (getKernelHelper() != null ? !getKernelHelper().equals(that.getKernelHelper()) : that.getKernelHelper() != null)
+            return false;
+        if (getAdjustedScore() != null ? !getAdjustedScore().equals(that.getAdjustedScore()) : that.getAdjustedScore() != null)
             return false;
         if (random != null ? !random.equals(that.random) : that.random != null) return false;
         return cloner != null ? cloner.equals(that.cloner) : that.cloner == null;
@@ -562,6 +583,9 @@ public class Hypothesis {
         result = 31 * result + (getExamples() != null ? getExamples().hashCode() : 0);
         result = 31 * result + (getFeaturesAndTargets() != null ? getFeaturesAndTargets().hashCode() : 0);
         result = 31 * result + (getKernelHelper() != null ? getKernelHelper().hashCode() : 0);
+        result = 31 * result + (getAdjustedScore() != null ? getAdjustedScore().hashCode() : 0);
+        temp = Double.doubleToLongBits(getAlignmentWithTarget());
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
         result = 31 * result + (random != null ? random.hashCode() : 0);
         result = 31 * result + (cloner != null ? cloner.hashCode() : 0);
         return result;

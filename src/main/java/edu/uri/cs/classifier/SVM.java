@@ -3,6 +3,7 @@ package edu.uri.cs.classifier;
 import libsvm.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -10,6 +11,12 @@ import java.util.Objects;
  * Created by Ben on 1/26/19.
  */
 public class SVM {
+
+    public class SVMResult {
+        public double actual = 0.0;
+        public double predicted = 0.0;
+        public boolean correct = false;
+    }
 
     private svm_model svm_model = null;
     private svm_problem svm_problem = null;
@@ -31,6 +38,22 @@ public class SVM {
                 }
             }
             ret = correct/numSamples;
+        }
+        return ret;
+    }
+
+    public HashMap<Integer, SVMResult> getPredicationForSVM(svm_problem prob) {
+        HashMap<Integer, SVMResult> ret = new HashMap<>();
+        if (Objects.nonNull(svm_model)) {
+            for (int i = 0; i < prob.l; i++) {
+                svm_node[] input = prob.x[i];
+                double result = svm.svm_predict(svm_model, input);
+                SVMResult svmResult = new SVMResult();
+                svmResult.actual = prob.y[i];
+                svmResult.predicted = result;
+                svmResult.correct = (result == svmResult.actual);
+                ret.put(i, svmResult);
+            }
         }
         return ret;
     }

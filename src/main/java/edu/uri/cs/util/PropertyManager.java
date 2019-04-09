@@ -19,7 +19,17 @@ public class PropertyManager {
 
     public static final String CRKTAGA_NO_GA_READ_PREV_BEST = "crktaga.do.not.run.ga.read.in.prev.best";
     public static final String CRKTAGA_PREV_BEST_FILE = "crktaga.path.to.prev.best";
+    public static final String CRKTAGA_PATH_TO_LAST_GEN = "crktaga.path.to.last.gen";
     public static final String CRKTAGA_SVM_C_VALUES = "crktaga.svm.c.values";
+    public static final String CRKTAGA_SVM_DEGREE_VALUES = "crktaga.kernel.parameter.degrees";
+    public static final String CRKTAGA_SVM_GAMMA_VALUES = "crktaga.kernel.parameter.gammas";
+    public static final String CRKTAGA_SVM_COEFF_VALUES = "crktaga.kernel.parameter.coef0s";
+    public static final String CRKTAGA_CREATE_ENSEMBLE = "crktaga.create.ensemble";
+    public static final String CRKTAGA_NAIVE_ENSEMBLE = "crktaga.naive.ensemble";
+    public static final String CRKTAGA_PENALIZE_INITIAL_SCORE = "crktaga.penalize.initial.score";
+    public static final String CRKTAGA_NUM_ENSEMBLE_CANDIDATES = "crktaga.num.ensemble.candidates";
+    public static final String CRKTAGA_NUM_ENSEMBLE_MEMBERS = "crktaga.num.ensemble.member";
+
 
     public static final String CRKTAGA_BACKGROUND_FILE = "crktaga.background.file";
     public static final String ALEPH_BACKGROUND_FILE = "aleph.background.file";
@@ -105,13 +115,55 @@ public class PropertyManager {
         return ScoringType.from(Integer.valueOf(getProperty(SCORING_TYPE)));
     }
 
-    public List<Double> getSVMCValues() {
-        String[] stringCs = getProperty(CRKTAGA_SVM_C_VALUES).split(",");
+    private List<Integer> getIntListForProperty(String property) {
+        String[] stringCs = getProperty(property).split(",");
+        List<Integer> ret;
+        if (stringCs.length != 0) {
+            ret = Arrays.stream(stringCs).map(s -> Integer.valueOf(s)).collect(Collectors.toList());
+        } else {
+            ret = new ArrayList<>();
+        }
+        return ret;
+    }
+
+    private List<Double> getDoubleListForProperty(String property) {
+        String[] stringCs = getProperty(property).split(",");
         List<Double> ret;
         if (stringCs.length != 0) {
             ret = Arrays.stream(stringCs).map(s -> Double.valueOf(s)).collect(Collectors.toList());
         } else {
             ret = new ArrayList<>();
+        }
+        return ret;
+    }
+
+    public List<Double> getSVMCValues() {
+        List<Double> ret = getDoubleListForProperty(CRKTAGA_SVM_C_VALUES);
+        if (ret.isEmpty()) {
+            ret.add(1.0);
+        }
+        return ret;
+    }
+
+    public List<Integer> getSVMDegreeValues() {
+        List<Integer> ret = getIntListForProperty(CRKTAGA_SVM_DEGREE_VALUES);
+        if (ret.isEmpty()) {
+            ret.add(1);
+        }
+        return ret;
+    }
+
+    public List<Double> getSVMGammaValues() {
+        List<Double> ret = getDoubleListForProperty(CRKTAGA_SVM_GAMMA_VALUES);
+        if (ret.isEmpty()) {
+            ret.add(1.0);
+        }
+        return ret;
+    }
+
+    public List<Double> getSVMCoeffValues() {
+        List<Double> ret = getDoubleListForProperty(CRKTAGA_SVM_COEFF_VALUES);
+        if (ret.isEmpty()) {
             ret.add(1.0);
         }
         return ret;
