@@ -145,13 +145,6 @@ public class PopulationManager {
         evaluateBestHypothesis(bestHypothesis);
     }
 
-    // TODO - thoughts
-    //   1) read in from multiple separate parameter selections? Not yet. First pass will just use best params.
-    //   2) should this be a new class? Hmmm... yes?
-    //   3) search over all kernel params for each candidate for ensemble? No. However, I think this will help (future work).
-    //   4) configurable top x for candidate and y for ensemble (y <= x). Yes.
-    //   5) parameter for naive top y vs diverse top y (yes)
-
     public void evaluatePreviousBest(String prevBestFileName) {
         readHypothesisFromFile(prevBestFileName);
         scoreHypotheses();

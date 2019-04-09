@@ -46,6 +46,12 @@ public class EnsembleCreator {
         this.numEnsembleMembers = propertyManager.getPropAsInt(PropertyManager.CRKTAGA_NUM_ENSEMBLE_MEMBERS);
     }
 
+
+    // TODO - thoughts (missing thoughts have been implemented)
+    //   1) read in from multiple separate parameter selections? Not yet. First pass will just use best params.
+    //   3) search over all kernel params for each candidate for ensemble? No. However, I think this will help (future work).
+    //   6) implement means of creating combined kernels from base kernels
+
     public void createEnsemble() {
         loadHypotheses();
         retrieveEnsembleCandidates();

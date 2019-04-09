@@ -14,7 +14,6 @@ public class Logenpro {
     private int populationSize = 0;
     private boolean runGA = true;
     private boolean ensemble = false;
-    private boolean naiveEnsemble = false;
 
     public Logenpro(PropertyManager propertyManager) {
         this.propertyManager = propertyManager;
