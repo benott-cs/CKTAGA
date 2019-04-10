@@ -30,6 +30,7 @@ public class EnsembleCreator {
     private boolean penalizeInitialScoreRepeatedly = false;
     private int numEnsembleCandidates;
     private int numEnsembleMembers;
+    private double diversityEncouragementFactor;
     // This is a total hack. I use 60 because I know that I never used more than
     // 60 hypotheses per generation in any experiment (this looks for 0-60 inclusive).
     private static final String HYPOTHESIS_REGEX = "hypothesis_([0-9]|[1-5]\\d|60)\\.pl";
@@ -44,6 +45,7 @@ public class EnsembleCreator {
                 propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_PENALIZE_INITIAL_SCORE);
         this.numEnsembleCandidates = propertyManager.getPropAsInt(PropertyManager.CRKTAGA_NUM_ENSEMBLE_CANDIDATES);
         this.numEnsembleMembers = propertyManager.getPropAsInt(PropertyManager.CRKTAGA_NUM_ENSEMBLE_MEMBERS);
+        this.diversityEncouragementFactor = propertyManager.getPropAsDouble(PropertyManager.CRKTAGA_DIVERSITY_ENCOURAGEMENT_FACTOR);
     }
 
 
@@ -157,7 +159,7 @@ public class EnsembleCreator {
                 double alignmentBetweenHypotheses =
                         populationManager.computeCenteredCKTABetweenHypotheses(candidate, newHypothesisInEnsemble);
                 double num = penalizeInitialScoreRepeatedly ? candidate.getAlignmentWithTarget() : 1.0;
-                double adjustBy = num / alignmentBetweenHypotheses;
+                double adjustBy = num / Math.pow(alignmentBetweenHypotheses, diversityEncouragementFactor);
                 double newAdjustedScore = currentAdjustedScore * adjustBy;
                 candidate.setAdjustedScore(newAdjustedScore);
             }

@@ -29,7 +29,7 @@ public class PropertyManager {
     public static final String CRKTAGA_PENALIZE_INITIAL_SCORE = "crktaga.penalize.initial.score";
     public static final String CRKTAGA_NUM_ENSEMBLE_CANDIDATES = "crktaga.num.ensemble.candidates";
     public static final String CRKTAGA_NUM_ENSEMBLE_MEMBERS = "crktaga.num.ensemble.member";
-
+    public static final String CRKTAGA_DIVERSITY_ENCOURAGEMENT_FACTOR = "crktaga.diversity.encouragement";
 
     public static final String CRKTAGA_BACKGROUND_FILE = "crktaga.background.file";
     public static final String ALEPH_BACKGROUND_FILE = "aleph.background.file";
