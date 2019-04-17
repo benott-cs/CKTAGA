@@ -26,8 +26,8 @@ public class CenteredKTAAndLogAccuracy implements HypothesisScorerIF, KTACalcula
     public double computeScore(Hypothesis h, int hypothesisNumber, String outputDir) {
         double accuracyScore = alephAccuracyScorer.computeScore(h, hypothesisNumber, outputDir);
         double centeredKTAScore = centeredKTAScorer.computeScore(h, hypothesisNumber, outputDir);
-        log.info("Hypothesis {} from gen {} had CKTA, Accuracy of {}, {}", hypothesisNumber,
-                outputDir, centeredKTAScore, accuracyScore);
+        log.info("Hypothesis {} from gen {} with filename {} had CKTA, Accuracy of {}, {}", hypothesisNumber,
+                outputDir, h.getHypothesisFile(), centeredKTAScore, accuracyScore);
         h.setScore(centeredKTAScore);
         return h.getScore();
     }
