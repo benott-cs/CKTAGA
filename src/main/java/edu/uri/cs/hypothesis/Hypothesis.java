@@ -429,6 +429,7 @@ public class Hypothesis {
                 }
             }
         }
+        Collections.sort(hypothesisDump);
         return hypothesisDump;
     }
 
@@ -447,9 +448,10 @@ public class Hypothesis {
 
     private String getStringsForClause(String startString, List<VariablesInLiteral> literals) {
         String clauseString = startString;
-        for (VariablesInLiteral literal : literals) {
-            clauseString += (clauseString.isEmpty() ? literal.getLiteral().getAlephString() :
-                    ", " + literal.getLiteral().getAlephString());
+        List<String> listStrings =
+                literals.stream().map(l -> l.getLiteral().getAlephString()).sorted().collect(Collectors.toList());
+        for (String literal : listStrings) {
+            clauseString += (clauseString.isEmpty() ? literal : ", " + literal);
 
         }
         return clauseString;
