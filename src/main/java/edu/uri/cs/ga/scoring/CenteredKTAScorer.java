@@ -36,7 +36,10 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             // FOR DEBUG ONLY
             hypothesisDump = h.getHypothesisDump();
         } else {
-            hypothesisDump.forEach(log::debug);
+            log.info("========================");
+            log.info("= hypothesis {} with filename {}", hypothesisNumber, h.getHypothesisFile());
+            log.info("========================");
+            hypothesisDump.forEach(log::info);
         }
         List<String> tmp = new ArrayList<>();
         int i = 0;
@@ -100,6 +103,15 @@ public class CenteredKTAScorer implements HypothesisScorerIF, KTACalculatorIF {
             List<String> negativeSamples = allTestData.stream().filter(t -> t.startsWith(negSampleToken))
                     .map(t -> t.replaceAll(negSampleToken, "")).collect(Collectors.toList());
             List<String> hypothesisDump = h.getHypothesisDump();
+            if (hypothesisDump.isEmpty()) {
+                // FOR DEBUG ONLY
+                hypothesisDump = h.getHypothesisDump();
+            } else {
+                log.info("========================");
+                log.info("= create test data features - hypothesis with filename {}", h.getHypothesisFile());
+                log.info("========================");
+                hypothesisDump.forEach(log::info);
+            }
             List<String> tmp = new ArrayList<>();
             int i = 0;
             outputParser = new CommandLineOutputParser(false);

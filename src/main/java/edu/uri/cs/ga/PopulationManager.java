@@ -164,6 +164,16 @@ public class PopulationManager {
         return testFeatures;
     }
 
+    private void printFeaturesAndTargets(FeaturesAndTargets fat) {
+        Map<String, ArrayList<Double>> features = fat.getFeatureVectors();
+        Map<String, Double> targets = fat.getTargets();
+        for (String key : features.keySet()) {
+            if (targets.containsKey(key)) {
+                log.info("test feature vec for {} is {} with target {}", key, features.get(key), targets.get(key));
+            }
+        }
+    }
+
     private void evaluateBestHypothesis(Hypothesis bestHypothesis) {
         String outputDir = hypothesisOutputDirectory + "/GEN_" + currentGeneration;
         KTACalculatorIF centeredKTAScorer = centeredKTAScorer(hypothesisScorerIF);
@@ -173,8 +183,10 @@ public class PopulationManager {
                 log.info("SVM training accuracy of best aligned solution is {} with C-val {}",
                         svm.getAccuracyOnProvidedSample(svm.getSvm_problem()), svm.getcVal());
             }
+            log.info("= test features ==========");
             FeaturesAndTargets testFeatures =
                     centeredKTAScorer.createFeatureVectorsForTestData(bestHypothesis, outputDir, propertyManager);
+            printFeaturesAndTargets(testFeatures);
             svm_problem prob = SVM.createProblem(testFeatures);
             for (SVM svm : svms) {
                 log.info("SVM test accuracy of best aligned solution is {} with C-val {}",
