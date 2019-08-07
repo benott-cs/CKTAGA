@@ -54,15 +54,44 @@ public class EnsembleCreator {
     //   3) search over all kernel params for each candidate for ensemble? No. However, I think this will help (future work).
     //   6) implement means of creating combined kernels from base kernels
 
-    public void createEnsemble() {
+    public void createEnsemble(boolean buildSVMsForLastGenerationOnly) {
         loadHypotheses();
         retrieveEnsembleCandidates();
         getEnsembleMembers();
         HashMap<Hypothesis, SVM> ensembleSVMs = makeEnsembleClassifier();
-        HashMap<Integer, EnsemblePrediction> preds = evaluateEnsemble(ensembleSVMs);
-        computeEnsembleAccuracy(preds);
+        if (!buildSVMsForLastGenerationOnly) {
+            HashMap<Integer, EnsemblePrediction> preds = evaluateEnsemble(ensembleSVMs);
+            computeEnsembleAccuracy(preds);
+        } else {
+            testSVMs(ensembleSVMs);
+        }
     }
 
+    public void testSVMs(HashMap<Hypothesis, SVM> ensemble) {
+        for (Hypothesis key : ensemble.keySet()) {
+            log.info("=========================");
+            log.info("Evaluating hypothesis {}", key.getHypothesisFile());
+            key.getHypothesisDump().forEach(log::info);
+            FeaturesAndTargets testFeatures =
+                    populationManager.getTestFeatureVectors(key);
+            printFeaturesAndTargets(testFeatures);
+            svm_problem prob = SVM.createProblem(testFeatures);
+            HashMap<Integer, SVM.SVMResult> res = ensemble.get(key).getPredictionForSVM(prob);
+            double total = 0;
+            double correctPredictions = 0;
+            for (Integer sample : res.keySet()) {
+                boolean isPositiveSample = (res.get(sample).actual > 0);
+                boolean isPredictionPositive = res.get(sample).predicted > 0;
+                total += 1.0;
+                if (isPositiveSample == isPredictionPositive) {
+                    correctPredictions += 1.0;
+                }
+            }
+            SVM svm = ensemble.get(key);
+            log.info("Hypothesis {} had score {} and SVM accuracy of {}, with test accuracy {}", key.getHypothesisFile(),
+                    key.getScore(), svm.getAccuracyOnProvidedSample(svm.getSvm_problem()), correctPredictions/total);
+        }
+    }
 
     public void computeEnsembleAccuracy(HashMap<Integer, EnsemblePrediction> preds) {
         double totalSamples = preds.size();
@@ -87,7 +116,7 @@ public class EnsembleCreator {
                     populationManager.getTestFeatureVectors(key);
             printFeaturesAndTargets(testFeatures);
             svm_problem prob = SVM.createProblem(testFeatures);
-            HashMap<Integer, SVM.SVMResult> res = ensemble.get(key).getPredicationForSVM(prob);
+            HashMap<Integer, SVM.SVMResult> res = ensemble.get(key).getPredictionForSVM(prob);
             for (Integer sample : res.keySet()) {
                 EnsemblePrediction ensemblePrediction = ret.getOrDefault(sample, new EnsemblePrediction());
                 ensemblePrediction.numPositiveVotes += ((res.get(sample).predicted > 0) ? 1.0 : 0.0);

@@ -42,7 +42,7 @@ public class SVM {
         return ret;
     }
 
-    public HashMap<Integer, SVMResult> getPredicationForSVM(svm_problem prob) {
+    public HashMap<Integer, SVMResult> getPredictionForSVM(svm_problem prob) {
         HashMap<Integer, SVMResult> ret = new HashMap<>();
         if (Objects.nonNull(svm_model)) {
             for (int i = 0; i < prob.l; i++) {

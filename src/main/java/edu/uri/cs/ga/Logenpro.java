@@ -14,6 +14,7 @@ public class Logenpro {
     private int populationSize = 0;
     private boolean runGA = true;
     private boolean ensemble = false;
+    private boolean createSVMsForLastGeneration = false;
 
     public Logenpro(PropertyManager propertyManager) {
         this.propertyManager = propertyManager;
@@ -26,6 +27,8 @@ public class Logenpro {
         populationManager.initialize();
         runGA = !propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_NO_GA_READ_PREV_BEST);
         ensemble = propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_CREATE_ENSEMBLE);
+        createSVMsForLastGeneration = propertyManager.getPropAsBoolean(PropertyManager.CRKTAGA_SVMS_FOR_LAST_GENERATION);
+
         if (runGA) {
             populationManager.createInitialPopulation(populationSize);
         }
@@ -45,8 +48,8 @@ public class Logenpro {
             populationManager.runGA();
         } else if (!ensemble) {
             populationManager.evaluatePreviousBest(propertyManager.getProperty(PropertyManager.CRKTAGA_PREV_BEST_FILE));
-        } else if (ensemble) {
-            ensembleCreator.createEnsemble();
+        } else if (ensemble || createSVMsForLastGeneration) {
+            ensembleCreator.createEnsemble(createSVMsForLastGeneration);
         }
     }
 

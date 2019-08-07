@@ -25,6 +25,7 @@ public class PropertyManager {
     public static final String CRKTAGA_SVM_GAMMA_VALUES = "crktaga.kernel.parameter.gammas";
     public static final String CRKTAGA_SVM_COEFF_VALUES = "crktaga.kernel.parameter.coef0s";
     public static final String CRKTAGA_CREATE_ENSEMBLE = "crktaga.create.ensemble";
+    public static final String CRKTAGA_SVMS_FOR_LAST_GENERATION = "crktaga.svms.for.last.generation";
     public static final String CRKTAGA_NAIVE_ENSEMBLE = "crktaga.naive.ensemble";
     public static final String CRKTAGA_PENALIZE_INITIAL_SCORE = "crktaga.penalize.initial.score";
     public static final String CRKTAGA_NUM_ENSEMBLE_CANDIDATES = "crktaga.num.ensemble.candidates";
